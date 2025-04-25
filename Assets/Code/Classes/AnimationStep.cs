@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 
 namespace Game.Classes
@@ -13,6 +14,8 @@ namespace Game.Classes
         public float ElapsedTime { get; set; }
 
         public float TotalTime { get; set; }
+        
+        public Action FinishCallback {  get; set; }
 
         public bool CanContinue
         {

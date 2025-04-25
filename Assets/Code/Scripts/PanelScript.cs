@@ -1,4 +1,5 @@
 using Game.Classes;
+using Game.Enums;
 using System.Collections.Generic;
 using UnityEngine;
 
@@ -61,6 +62,10 @@ namespace Game.Scripts
 
         private Panel panel;
 
+        private bool isAnimationsHappening;
+
+        private bool isToLockInput;
+
         private void Awake()
         {
             panel = new Panel(4, 4);
@@ -84,24 +89,28 @@ namespace Game.Scripts
 
         private void Start()
         {
-            Vector2Int firstSlotToInstantiate = GetRandomSlotNumber();
-            Vector2Int secondSlotToInstantiate = GetRandomSlotNumber();
+            Vector2Int firstSlotToInstantiate = new Vector2Int(0, 0);// GetRandomSlotNumber();
+            Vector2Int secondSlotToInstantiate = new Vector2Int(1, 0); // GetRandomSlotNumber();
             while (firstSlotToInstantiate == secondSlotToInstantiate)
             {
                 secondSlotToInstantiate = GetRandomSlotNumber();
             }
 
-            GameObject firstTileInstantiated = InstantiateTile(firstSlotToInstantiate.x, firstSlotToInstantiate.y);
-            GameObject secondTileInstantiated = InstantiateTile(secondSlotToInstantiate.x, secondSlotToInstantiate.y);
+            InstantiateTile(firstSlotToInstantiate.x, firstSlotToInstantiate.y);
+            InstantiateTile(secondSlotToInstantiate.x, secondSlotToInstantiate.y);
         }
-
-        private bool isAnimationsHappening;
-        private bool isToLockInput;
 
         private void Update()
         {
             animationStepsList.ForEach((item) => {
                 item.Update();
+            });
+
+            animationStepsList.ForEach((item) => {
+                if (item.CanContinue == false)
+                {
+                    item.FinishCallback?.Invoke();
+                }                
             });
 
             animationStepsList.RemoveAll((item) => {
@@ -133,8 +142,8 @@ namespace Game.Scripts
 
         private Vector2Int GetRandomSlotNumber()
         {
-            int x = Random.Range(0, 3);
-            int y = Random.Range(0, 3);
+            int x = Random.Range(0, 4);
+            int y = Random.Range(0, 4);
             return new Vector2Int(x, y);
         }
 
@@ -172,7 +181,20 @@ namespace Game.Scripts
                     }
 
                     Vector2Int actualCoordinate = new Vector2Int(x, y);
-                    Vector2Int finalCoordinate = IterateToLeft(x, y);
+                    Vector2Int finalCoordinate = new Vector2Int(x, y);
+
+                    SlotOperations operation = SlotOperations.Stop;
+                    for (int xx = x; xx > 0; xx--)
+                    {
+                        operation = TryMoveToLeft(xx, y);
+                        if (operation == SlotOperations.Stop)
+                            break;
+
+                        finalCoordinate = new Vector2Int(xx - 1, y);
+
+                        if (operation == SlotOperations.Fuse)
+                            break;
+                    }
 
                     if (actualCoordinate == finalCoordinate)
                     {
@@ -186,6 +208,18 @@ namespace Game.Scripts
                     animationStep.StartPoint = slot.GameObject.transform.position;
                     animationStep.EndPoint = targetSlot.GameObject.transform.position;
                     animationStep.TotalTime = 1f;
+
+                    GameObject gameObjectToChange = slot.Tile.GameObject;
+                    GameObject gameObjectToDelete = targetSlot.Tile.GameObject;
+                    if (operation == SlotOperations.Fuse)
+                    {                        
+                        animationStep.FinishCallback = () =>
+                        {
+                            gameObjectToChange.GetComponent<TileScript>().Tile.Value += gameObjectToChange.GetComponent<TileScript>().Tile.Value;
+                            gameObjectToChange.GetComponent<TileScript>().UpdateText();
+                            Destroy(gameObjectToDelete);
+                        };
+                    }
                     animationStepsList.Add(animationStep);
 
                     panel.Slots[finalCoordinate.x, finalCoordinate.y].Tile = slot.Tile;
@@ -194,30 +228,21 @@ namespace Game.Scripts
             }
         }
 
-        private Vector2Int IterateToLeft(int startX, int y)
-        {
-            Vector2Int vector = new Vector2Int(startX, y);
-            for (int x = startX; x > 0; x--)
-            {
-                if (TryMoveToLeft(x, y) == false)
-                    break;
-
-                vector = new Vector2Int(x - 1, y);
-            }
-            return vector;
-        }
-
-        private bool TryMoveToLeft(int x, int y)
+        private SlotOperations TryMoveToLeft(int x, int y)
         {
             if (x - 1 < 0)
-                return false;
+                return SlotOperations.Stop;
 
-            Slot slot = panel.Slots[x - 1, y];
+            Slot actualSlot = panel.Slots[x, y];
+            Slot leftSlot = panel.Slots[x - 1, y];
 
-            if (slot.IsOccupied)
-                return false;
+            if (leftSlot.IsOccupied && leftSlot.Tile.Value == actualSlot.Tile.Value)
+                return SlotOperations.Fuse;
 
-            return true;
+            if (leftSlot.IsOccupied)
+                return SlotOperations.Stop;
+
+            return SlotOperations.Move;
         }
     }
 }

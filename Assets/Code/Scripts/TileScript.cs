@@ -23,6 +23,11 @@ namespace Game.Scripts
         private void Start()
         {
             image.color = Color.blue;
+            UpdateText();
+        }
+
+        public void UpdateText()
+        {
             textBox.text = Tile.Value.ToString();
         }
     }
