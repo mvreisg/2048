@@ -138,10 +138,37 @@ namespace Game.Scripts
             }
 
             bool left = Input.GetKeyDown(KeyCode.A);
-            if (left && isToLockInput == false)
+            bool right = Input.GetKeyDown(KeyCode.D);
+            bool top = Input.GetKeyDown(KeyCode.W);
+            bool bottom = Input.GetKeyDown(KeyCode.S);
+            if (left && right == false && top == false && bottom == false && isToLockInput == false)
             {
                 Debug.Log("para a esquerda");
                 StartMovingAnimationToTheLeft();
+                isToLockInput = true;
+                return;
+            }
+
+            if (left == false && right && top == false && bottom == false && isToLockInput == false)
+            {
+                Debug.Log("para a direita");
+                StartMovingAnimationToTheRight();
+                isToLockInput = true;
+                return;
+            }
+
+            if (left == false && right == false && top && bottom == false && isToLockInput == false)
+            {
+                Debug.Log("para cima");
+                StartMovingAnimationToTheTop();
+                isToLockInput = true;
+                return;
+            }
+
+            if (left == false && right == false && top == false && bottom && isToLockInput == false)
+            {
+                Debug.Log("para baixo");
+                StartMovingAnimationToTheBottom();
                 isToLockInput = true;
                 return;
             }
@@ -239,6 +266,7 @@ namespace Game.Scripts
                             {
                                 gameObjectToChange.GetComponent<TileScript>().Tile.Value += gameObjectToChange.GetComponent<TileScript>().Tile.Value;
                                 gameObjectToChange.GetComponent<TileScript>().UpdateText();
+                                gameObjectToChange.GetComponent<TileScript>().UpdateColor();
                                 Destroy(gameObjectToDelete);
                                 panel.DecrementAmountOfFilledSlots(1);
                             };
@@ -255,6 +283,186 @@ namespace Game.Scripts
             }
         }
 
+        private void StartMovingAnimationToTheRight()
+        {
+            for (int y = 0; y < 4; y++)
+            {
+                for (int x = 3; x >= 0; x--)
+                {
+                    if (panel.Slots[x, y].IsOccupied == false)
+                    {
+                        continue;
+                    }
+
+                    Vector2Int actualCoordinate = new Vector2Int(x, y);
+                    Vector2Int finalCoordinate = new Vector2Int(x, y);
+
+                    SlotOperations operation = SlotOperations.Stop;
+                    for (int xx = x; xx < 4; xx++)
+                    {
+                        operation = TryMoveToRight(xx, y);
+                        if (operation == SlotOperations.Stop)
+                            break;
+
+                        actualCoordinate = new Vector2Int(xx, y);
+                        finalCoordinate = new Vector2Int(xx + 1, y);
+
+                        Slot actualSlot = panel.Slots[actualCoordinate.x, actualCoordinate.y];
+                        Slot targetSlot = panel.Slots[finalCoordinate.x, finalCoordinate.y];
+
+                        AnimationStep animationStep = new AnimationStep();
+                        animationStep.GameObject = actualSlot.Tile.GameObject;
+                        animationStep.StartPoint = actualSlot.GameObject.transform.position;
+                        animationStep.EndPoint = targetSlot.GameObject.transform.position;
+                        animationStep.TotalTime = 0.2f;
+
+                        GameObject gameObjectToChange = actualSlot.Tile.GameObject;
+
+                        if (operation == SlotOperations.Fuse)
+                        {
+                            GameObject gameObjectToDelete = targetSlot.Tile.GameObject;
+
+                            animationStep.FinishCallback = () =>
+                            {
+                                gameObjectToChange.GetComponent<TileScript>().Tile.Value += gameObjectToChange.GetComponent<TileScript>().Tile.Value;
+                                gameObjectToChange.GetComponent<TileScript>().UpdateText();
+                                gameObjectToChange.GetComponent<TileScript>().UpdateColor();
+                                Destroy(gameObjectToDelete);
+                                panel.DecrementAmountOfFilledSlots(1);
+                            };
+                        }
+                        animationStepsList.Add(animationStep);
+
+                        panel.Slots[finalCoordinate.x, finalCoordinate.y].Tile = actualSlot.Tile;
+                        panel.Slots[actualCoordinate.x, actualCoordinate.y].Tile = null;
+
+                        if (operation == SlotOperations.Fuse)
+                            break;
+                    }
+                }
+            }
+        }
+
+        private void StartMovingAnimationToTheTop()
+        {
+            for (int x = 0; x < 4; x++)
+            {
+                for (int y = 0; y < 4; y++)
+                {
+                    if (panel.Slots[x, y].IsOccupied == false)
+                    {
+                        continue;
+                    }
+
+                    Vector2Int actualCoordinate = new Vector2Int(x, y);
+                    Vector2Int finalCoordinate = new Vector2Int(x, y);
+
+                    SlotOperations operation = SlotOperations.Stop;
+                    for (int yy = y; y >= 0; yy--)
+                    {
+                        operation = TryMoveToTop(x, yy);
+                        if (operation == SlotOperations.Stop)
+                            break;
+
+                        actualCoordinate = new Vector2Int(x, yy);
+                        finalCoordinate = new Vector2Int(x, yy - 1);
+
+                        Slot actualSlot = panel.Slots[actualCoordinate.x, actualCoordinate.y];
+                        Slot targetSlot = panel.Slots[finalCoordinate.x, finalCoordinate.y];
+
+                        AnimationStep animationStep = new AnimationStep();
+                        animationStep.GameObject = actualSlot.Tile.GameObject;
+                        animationStep.StartPoint = actualSlot.GameObject.transform.position;
+                        animationStep.EndPoint = targetSlot.GameObject.transform.position;
+                        animationStep.TotalTime = 0.2f;
+
+                        GameObject gameObjectToChange = actualSlot.Tile.GameObject;
+
+                        if (operation == SlotOperations.Fuse)
+                        {
+                            GameObject gameObjectToDelete = targetSlot.Tile.GameObject;
+
+                            animationStep.FinishCallback = () =>
+                            {
+                                gameObjectToChange.GetComponent<TileScript>().Tile.Value += gameObjectToChange.GetComponent<TileScript>().Tile.Value;
+                                gameObjectToChange.GetComponent<TileScript>().UpdateText();
+                                gameObjectToChange.GetComponent<TileScript>().UpdateColor();
+                                Destroy(gameObjectToDelete);
+                                panel.DecrementAmountOfFilledSlots(1);
+                            };
+                        }
+                        animationStepsList.Add(animationStep);
+
+                        panel.Slots[finalCoordinate.x, finalCoordinate.y].Tile = actualSlot.Tile;
+                        panel.Slots[actualCoordinate.x, actualCoordinate.y].Tile = null;
+
+                        if (operation == SlotOperations.Fuse)
+                            break;
+                    }
+                }
+            }
+        }
+
+        private void StartMovingAnimationToTheBottom()
+        {
+            for (int x = 0; x < 4; x++)
+            {
+                for (int y = 3; y >= 0; y--)
+                {
+                    if (panel.Slots[x, y].IsOccupied == false)
+                    {
+                        continue;
+                    }
+
+                    Vector2Int actualCoordinate = new Vector2Int(x, y);
+                    Vector2Int finalCoordinate = new Vector2Int(x, y);
+
+                    SlotOperations operation = SlotOperations.Stop;
+                    for (int yy = y; y < 4; yy++)
+                    {
+                        operation = TryMoveToBottom(x, yy);
+                        if (operation == SlotOperations.Stop)
+                            break;
+
+                        actualCoordinate = new Vector2Int(x, yy);
+                        finalCoordinate = new Vector2Int(x, yy + 1);
+
+                        Slot actualSlot = panel.Slots[actualCoordinate.x, actualCoordinate.y];
+                        Slot targetSlot = panel.Slots[finalCoordinate.x, finalCoordinate.y];
+
+                        AnimationStep animationStep = new AnimationStep();
+                        animationStep.GameObject = actualSlot.Tile.GameObject;
+                        animationStep.StartPoint = actualSlot.GameObject.transform.position;
+                        animationStep.EndPoint = targetSlot.GameObject.transform.position;
+                        animationStep.TotalTime = 0.2f;
+
+                        GameObject gameObjectToChange = actualSlot.Tile.GameObject;
+
+                        if (operation == SlotOperations.Fuse)
+                        {
+                            GameObject gameObjectToDelete = targetSlot.Tile.GameObject;
+
+                            animationStep.FinishCallback = () =>
+                            {
+                                gameObjectToChange.GetComponent<TileScript>().Tile.Value += gameObjectToChange.GetComponent<TileScript>().Tile.Value;
+                                gameObjectToChange.GetComponent<TileScript>().UpdateText();
+                                gameObjectToChange.GetComponent<TileScript>().UpdateColor();
+                                Destroy(gameObjectToDelete);
+                                panel.DecrementAmountOfFilledSlots(1);
+                            };
+                        }
+                        animationStepsList.Add(animationStep);
+
+                        panel.Slots[finalCoordinate.x, finalCoordinate.y].Tile = actualSlot.Tile;
+                        panel.Slots[actualCoordinate.x, actualCoordinate.y].Tile = null;
+
+                        if (operation == SlotOperations.Fuse)
+                            break;
+                    }
+                }
+            }
+        }
+
         private SlotOperations TryMoveToLeft(int x, int y)
         {
             if (x - 1 < 0)
@@ -267,6 +475,57 @@ namespace Game.Scripts
                 return SlotOperations.Fuse;
 
             if (leftSlot.IsOccupied)
+                return SlotOperations.Stop;
+
+            return SlotOperations.Move;
+        }
+
+        private SlotOperations TryMoveToRight(int x, int y)
+        {
+            if (x + 1 >= 4)
+                return SlotOperations.Stop;
+
+            Slot actualSlot = panel.Slots[x, y];
+            Slot rightSlot = panel.Slots[x + 1, y];
+
+            if (rightSlot.IsOccupied && rightSlot.Tile.Value == actualSlot.Tile.Value)
+                return SlotOperations.Fuse;
+
+            if (rightSlot.IsOccupied)
+                return SlotOperations.Stop;
+
+            return SlotOperations.Move;
+        }
+
+        private SlotOperations TryMoveToTop(int x, int y)
+        {
+            if (y - 1 < 0)
+                return SlotOperations.Stop;
+
+            Slot actualSlot = panel.Slots[x, y];
+            Slot topSlot = panel.Slots[x, y - 1];
+
+            if (topSlot.IsOccupied && topSlot.Tile.Value == actualSlot.Tile.Value)
+                return SlotOperations.Fuse;
+
+            if (topSlot.IsOccupied)
+                return SlotOperations.Stop;
+
+            return SlotOperations.Move;
+        }
+
+        private SlotOperations TryMoveToBottom(int x, int y)
+        {
+            if (y + 1 >= 4)
+                return SlotOperations.Stop;
+
+            Slot actualSlot = panel.Slots[x, y];
+            Slot bottomSlot = panel.Slots[x, y + 1];
+
+            if (bottomSlot.IsOccupied && bottomSlot.Tile.Value == actualSlot.Tile.Value)
+                return SlotOperations.Fuse;
+
+            if (bottomSlot.IsOccupied)
                 return SlotOperations.Stop;
 
             return SlotOperations.Move;
