@@ -60,7 +60,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 1, g: 1, b: 1, a: 0.392}
+  m_Color: {r: 0.5365459, g: 0.48949805, b: 0.8301887, a: 0.392}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -91,6 +91,17 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   image: {fileID: 4249525644101432019}
   textBox: {fileID: 5881192275940626467}
+  twoColor: {r: 0.8349056, g: 0.97454244, b: 1, a: 1}
+  fourColor: {r: 0.56628, g: 0.81424206, b: 0.85800004, a: 1}
+  eightColor: {r: 0.075694196, g: 0.75747895, b: 0.764151, a: 1}
+  sixteenColor: {r: 0.112807065, g: 0.6132076, b: 0.5638657, a: 1}
+  thirtyTwoColor: {r: 0.11347453, g: 0.4716981, b: 0.4643828, a: 1}
+  sixtyFourColor: {r: 0.06421325, g: 0.3490566, b: 0.3435901, a: 1}
+  oneHundredTwentyEightColor: {r: 0.039649345, g: 0.254717, b: 0.2420944, a: 1}
+  twoHundredFiftySixColor: {r: 0.03524386, g: 0.2264151, b: 0.21359316, a: 1}
+  fiveHundredTwelveColor: {r: 0.01495194, g: 0.14673303, b: 0.1509434, a: 1}
+  oneThousandTwentyFourColor: {r: 0, g: 0.09433961, b: 0.092472814, a: 1}
+  twoThousandFortyEightColor: {r: 0, g: 0, b: 0, a: 1}
 --- !u!1 &8160392535547442028
 GameObject:
   m_ObjectHideFlags: 0
@@ -165,8 +176,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4278190080
+  m_fontColor: {r: 0, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -183,13 +194,13 @@ MonoBehaviour:
   m_faceColor:
     serializedVersion: 2
     rgba: 4294967295
-  m_fontSize: 51.8
+  m_fontSize: 32.4
   m_fontSizeBase: 36
   m_fontWeight: 400
   m_enableAutoSizing: 1
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 17
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535

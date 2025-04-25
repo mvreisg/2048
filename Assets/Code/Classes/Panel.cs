@@ -5,6 +5,7 @@ namespace Game.Classes
         private Slot[,] slots;
         private int width;
         private int length;
+        private int amountOfFilledSlots;
 
         public Panel(int width, int length)
         {
@@ -19,6 +20,32 @@ namespace Game.Classes
             {
                 return slots;
             }
+        }
+
+        public bool HasEmptySlots
+        {
+            get
+            {
+                return amountOfFilledSlots < width * length;
+            }
+        }
+
+        public int AmountOfFilledSlots
+        {
+            get
+            {
+                return amountOfFilledSlots;
+            }
+        }
+
+        public void IncrementAmountOfFilledSlots(int amount)
+        {
+            amountOfFilledSlots += amount;
+        }
+
+        public void DecrementAmountOfFilledSlots(int amount)
+        {
+            amountOfFilledSlots -= amount;
         }
     }
 }
