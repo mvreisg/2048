@@ -1,16 +1,31 @@
+using Game.Classes;
+using TMPro;
 using UnityEngine;
 
-public class ScoreScript : MonoBehaviour
+namespace Game.Scripts
 {
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
-    void Start()
+    public class ScoreScript : MonoBehaviour
     {
-        
-    }
+        [SerializeField]
+        private TextMeshProUGUI textBox;
 
-    // Update is called once per frame
-    void Update()
-    {
-        
+        private Score Score { get; set; }
+
+        private void Awake()
+        {
+            Score = new Score();
+            UpdateText();
+        }
+
+        public void IncreaseScoreBy(int value)
+        {
+            Score.IncreaseScoreBy(value);
+            UpdateText();
+        }
+
+        private void UpdateText()
+        {
+            textBox.text = Score.ActualValue.ToString();
+        }
     }
 }

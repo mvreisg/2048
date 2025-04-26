@@ -58,6 +58,9 @@ namespace Game.Scripts
         [SerializeField]
         private GameObject TilePrefab;
 
+        [SerializeField]
+        private ScoreScript scoreScript;
+
         private Queue<AnimationStep>[] animationStepsQueueArray = new Queue<AnimationStep>[4];
 
         private AnimationStep[] animationSteps = new AnimationStep[4];
@@ -150,6 +153,39 @@ namespace Game.Scripts
                 return;
             }
 
+            float horizontal = Input.GetAxis("Horizontal");
+            float vertical = Input.GetAxis("Vertical");
+
+            if (horizontal < 0f && isToLockInput == false)
+            {
+                Debug.Log("a");
+                StartMovingAnimationToTheLeft();
+                isToLockInput = true;
+                return;
+            }
+
+            if (horizontal > 0f && isToLockInput == false)
+            {
+                StartMovingAnimationToTheRight();
+                isToLockInput = true;
+                return;
+            }
+
+            if (vertical < 0f && isToLockInput == false)
+            {
+                StartMovingAnimationToTheBottom();
+                isToLockInput = true;
+                return;
+            }
+
+            if (vertical > 0f && isToLockInput == false)
+            {
+                StartMovingAnimationToTheTop();
+                isToLockInput = true;
+                return;
+            }
+
+            /*
             bool left = Input.GetKeyDown(KeyCode.A);
             bool right = Input.GetKeyDown(KeyCode.D);
             bool top = Input.GetKeyDown(KeyCode.W);
@@ -185,6 +221,7 @@ namespace Game.Scripts
                 isToLockInput = true;
                 return;
             }
+            */
         }
 
         private Vector2Int GetRandomSlotNumber()
@@ -259,6 +296,7 @@ namespace Game.Scripts
                 GameObject gameObjectToDelete = finalTile.GameObject;
 
                 actualTile.Value += finalTile.Value;
+                scoreScript.IncreaseScoreBy(actualTile.Value);
 
                 animationStep.FinishCallback = () => {
                     TileScript tileScript = gameObjectToChange.GetComponent<TileScript>();
