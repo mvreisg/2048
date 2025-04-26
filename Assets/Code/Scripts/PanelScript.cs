@@ -8,57 +8,59 @@ namespace Game.Scripts
     public class PanelScript : MonoBehaviour
     {
         [SerializeField]
-        private GameObject slot_0_0;
+        private SlotScript slot_0_0;
 
         [SerializeField]
-        private GameObject slot_0_1;
+        private SlotScript slot_0_1;
 
         [SerializeField]
-        private GameObject slot_0_2;
+        private SlotScript slot_0_2;
 
         [SerializeField]
-        private GameObject slot_0_3;
+        private SlotScript slot_0_3;
 
         [SerializeField]
-        private GameObject slot_1_0;
+        private SlotScript slot_1_0;
 
         [SerializeField]
-        private GameObject slot_1_1;
+        private SlotScript slot_1_1;
 
         [SerializeField]
-        private GameObject slot_1_2;
+        private SlotScript slot_1_2;
 
         [SerializeField]
-        private GameObject slot_1_3;
+        private SlotScript slot_1_3;
 
         [SerializeField]
-        private GameObject slot_2_0;
+        private SlotScript slot_2_0;
 
         [SerializeField]
-        private GameObject slot_2_1;
+        private SlotScript slot_2_1;
 
         [SerializeField]
-        private GameObject slot_2_2;
+        private SlotScript slot_2_2;
 
         [SerializeField]
-        private GameObject slot_2_3;
+        private SlotScript slot_2_3;
 
         [SerializeField]
-        private GameObject slot_3_0;
+        private SlotScript slot_3_0;
 
         [SerializeField]
-        private GameObject slot_3_1;
+        private SlotScript slot_3_1;
 
         [SerializeField]
-        private GameObject slot_3_2;
+        private SlotScript slot_3_2;
 
         [SerializeField]
-        private GameObject slot_3_3;
+        private SlotScript slot_3_3;
 
         [SerializeField]
         private GameObject TilePrefab;
 
-        private List<AnimationStep> animationStepsList = new List<AnimationStep>();
+        private Queue<AnimationStep>[] animationStepsQueueArray = new Queue<AnimationStep>[4];
+
+        private AnimationStep[] animationSteps = new AnimationStep[4];
 
         private Panel panel;
 
@@ -69,65 +71,76 @@ namespace Game.Scripts
         private void Awake()
         {
             panel = new Panel(4, 4);
-            panel.Slots[0, 0] = new Slot(slot_0_0, new Vector2Int(0, 0));
-            panel.Slots[0, 1] = new Slot(slot_0_1, new Vector2Int(0, 1));
-            panel.Slots[0, 2] = new Slot(slot_0_2, new Vector2Int(0, 2));
-            panel.Slots[0, 3] = new Slot(slot_0_3, new Vector2Int(0, 3));
-            panel.Slots[1, 0] = new Slot(slot_1_0, new Vector2Int(1, 0));
-            panel.Slots[1, 1] = new Slot(slot_1_1, new Vector2Int(1, 1));
-            panel.Slots[1, 2] = new Slot(slot_1_2, new Vector2Int(1, 2));
-            panel.Slots[1, 3] = new Slot(slot_1_3, new Vector2Int(1, 3));
-            panel.Slots[2, 0] = new Slot(slot_2_0, new Vector2Int(2, 0));
-            panel.Slots[2, 1] = new Slot(slot_2_1, new Vector2Int(2, 1));
-            panel.Slots[2, 2] = new Slot(slot_2_2, new Vector2Int(2, 2));
-            panel.Slots[2, 3] = new Slot(slot_2_3, new Vector2Int(2, 3));
-            panel.Slots[3, 0] = new Slot(slot_3_0, new Vector2Int(3, 0));
-            panel.Slots[3, 1] = new Slot(slot_3_1, new Vector2Int(3, 1));
-            panel.Slots[3, 2] = new Slot(slot_3_2, new Vector2Int(3, 2));
-            panel.Slots[3, 3] = new Slot(slot_3_3, new Vector2Int(3, 3));
         }
 
         private void Start()
-        {
-            Vector2Int firstSlotToInstantiate = new Vector2Int(0, 0);// GetRandomSlotNumber();
-            Vector2Int secondSlotToInstantiate = new Vector2Int(1, 0); // GetRandomSlotNumber();
-            while (firstSlotToInstantiate == secondSlotToInstantiate)
-            {
-                secondSlotToInstantiate = GetRandomSlotNumber();
-            }
+        {            
+            panel.Slots[0, 0] = slot_0_0.Slot;
+            panel.Slots[0, 1] = slot_0_1.Slot;
+            panel.Slots[0, 2] = slot_0_2.Slot;
+            panel.Slots[0, 3] = slot_0_3.Slot;
+            panel.Slots[1, 0] = slot_1_0.Slot;
+            panel.Slots[1, 1] = slot_1_1.Slot;
+            panel.Slots[1, 2] = slot_1_2.Slot;
+            panel.Slots[1, 3] = slot_1_3.Slot;
+            panel.Slots[2, 0] = slot_2_0.Slot;
+            panel.Slots[2, 1] = slot_2_1.Slot;
+            panel.Slots[2, 2] = slot_2_2.Slot;
+            panel.Slots[2, 3] = slot_2_3.Slot;
+            panel.Slots[3, 0] = slot_3_0.Slot;
+            panel.Slots[3, 1] = slot_3_1.Slot;
+            panel.Slots[3, 2] = slot_3_2.Slot;
+            panel.Slots[3, 3] = slot_3_3.Slot;
 
-            InstantiateTile(firstSlotToInstantiate.x, firstSlotToInstantiate.y);
-            InstantiateTile(secondSlotToInstantiate.x, secondSlotToInstantiate.y);
+            for (int i = 0; i < 2; i++)
+            {
+                GenerateNewTile();
+            }            
         }
 
         private void Update()
         {
-            Debug.Log(string.Format("quantidade -> {0}", panel.AmountOfFilledSlots));
-            animationStepsList.ForEach((item) => {
-                item.Update();
-            });
+            for (int i = 0; i < animationStepsQueueArray.Length; i++)
+            {
+                if (animationStepsQueueArray[i] == null)
+                    continue;
 
-            animationStepsList.ForEach((item) => {
-                if (item.CanContinue == false)
+                if (animationSteps[i] == null && animationStepsQueueArray[i].Count > 0)
                 {
-                    item.FinishCallback?.Invoke();
-                }                
-            });
-
-            animationStepsList.RemoveAll((item) => {
-                if (item.CanContinue == false)
-                {
-                    item.Update();
-                    return true;
+                    animationSteps[i] = animationStepsQueueArray[i].Dequeue();
                 }
-                return false;
-            });
+            }
+            
+            for (int i = 0; i < animationSteps.Length; i++)
+            {
+                AnimationStep animationStep = animationSteps[i];
+                if (animationStep == null)
+                    continue;
 
-            isAnimationsHappening = animationStepsList.Count > 0;
+                animationStep.Update();
+                if (animationStep.CanContinue == false)
+                {
+                    animationStep.Update();
+                    animationStep.FinishCallback?.Invoke();
+                    animationSteps[i] = null;
+                }                
+            }
+
+            isAnimationsHappening = false;
+            for (int i = 0; i < animationStepsQueueArray.Length; i++)
+            {
+                if (animationStepsQueueArray[i] == null)
+                    continue;
+
+                if (animationStepsQueueArray[i].Count > 0)
+                {
+                    isAnimationsHappening = true;
+                    break;
+                }
+            }
 
             if (isAnimationsHappening)
             {
-                Debug.Log("animaçoes acontecendo");
                 return;
             }
             else if (isAnimationsHappening == false && isToLockInput)
@@ -172,7 +185,6 @@ namespace Game.Scripts
                 isToLockInput = true;
                 return;
             }
-            Debug.Log("fim do update");
         }
 
         private Vector2Int GetRandomSlotNumber()
@@ -187,20 +199,18 @@ namespace Game.Scripts
             if (panel.HasEmptySlots == false)
                 return;
 
-            GameObject gameObject = Instantiate<GameObject>(
+            GameObject gameObject = Instantiate(
                 TilePrefab,
                 panel.Slots[x, y].GameObject.transform.position,
                 Quaternion.Euler(Vector3.zero),
-                this.transform
+                transform
             );
 
-            TileScript script = gameObject.GetComponent<TileScript>();
-            
-            script.Tile.GameObject = script.gameObject;
-            script.Tile.Value = 2;
-            script.Tile.Coordinates = new Vector2Int(x, y);
+            TileScript tileScript = gameObject.GetComponent<TileScript>();
 
-            panel.Slots[x, y].Tile = script.Tile;
+            tileScript.Tile = new Tile(new Vector2Int(x, y), 2, tileScript.gameObject);
+
+            panel.Slots[x, y].Tile = tileScript.Tile;
 
             panel.IncrementAmountOfFilledSlots(1);
         }
@@ -223,10 +233,54 @@ namespace Game.Scripts
             return panel.Slots[x, y].IsOccupied;
         }
 
-        private void StartMovingAnimationToTheLeft()
+        private void MakeAnimationLogic (
+            Queue<AnimationStep> animationStepsQueue, 
+            SlotOperations operation, 
+            Vector2Int actualCoordinate, 
+            Vector2Int finalCoordinate) 
         {
+            Slot actualSlot = panel.Slots[actualCoordinate.x, actualCoordinate.y];
+            Slot finalSlot = panel.Slots[finalCoordinate.x, finalCoordinate.y];
+
+            Tile actualTile = actualSlot.Tile;
+            Tile finalTile = finalSlot.Tile;
+
+            GameObject gameObjectToChange = actualTile.GameObject;
+
+            AnimationStep animationStep = new AnimationStep();
+            animationStep.GameObject = gameObjectToChange;
+            animationStep.StartPoint = actualSlot.GameObject.transform.position;
+            animationStep.EndPoint = finalSlot.GameObject.transform.position;
+            animationStep.TotalTime = 0.1f;
+            actualTile.Coordinates = finalCoordinate;
+
+            if (operation == SlotOperations.Fuse)
+            {
+                GameObject gameObjectToDelete = finalTile.GameObject;
+
+                actualTile.Value += finalTile.Value;
+
+                animationStep.FinishCallback = () => {
+                    TileScript tileScript = gameObjectToChange.GetComponent<TileScript>();
+                    tileScript.Tile = actualTile;
+                    tileScript.UpdateText();
+                    tileScript.UpdateColor();
+                    Destroy(gameObjectToDelete);
+                    panel.DecrementAmountOfFilledSlots(1);
+                };
+            }
+
+            panel.Slots[actualCoordinate.x, actualCoordinate.y].Tile = null;
+            panel.Slots[finalCoordinate.x, finalCoordinate.y].Tile = actualTile;
+
+            animationStepsQueue.Enqueue(animationStep);
+        }
+
+        private void StartMovingAnimationToTheLeft()
+        {            
             for (int y = 0; y < 4; y++)
             {
+                Queue<AnimationStep> animationStepsQueue = new Queue<AnimationStep>();
                 for (int x = 0; x < 4; x++)
                 {
                     if (panel.Slots[x, y].IsOccupied == false)
@@ -241,45 +295,17 @@ namespace Game.Scripts
                     for (int xx = x; xx > 0; xx--)
                     {
                         operation = TryMoveToLeft(xx, y);
+
                         if (operation == SlotOperations.Stop)
                             break;
 
                         actualCoordinate = new Vector2Int(xx, y);
                         finalCoordinate = new Vector2Int(xx - 1, y);
 
-                        Slot actualSlot = panel.Slots[actualCoordinate.x, actualCoordinate.y];
-                        Slot targetSlot = panel.Slots[finalCoordinate.x, finalCoordinate.y];
-
-                        AnimationStep animationStep = new AnimationStep();
-                        animationStep.GameObject = actualSlot.Tile.GameObject;
-                        animationStep.StartPoint = actualSlot.GameObject.transform.position;
-                        animationStep.EndPoint = targetSlot.GameObject.transform.position;
-                        animationStep.TotalTime = 0.2f;
-
-                        GameObject gameObjectToChange = actualSlot.Tile.GameObject;
-
-                        if (operation == SlotOperations.Fuse)
-                        {
-                            GameObject gameObjectToDelete = targetSlot.Tile.GameObject;
-
-                            animationStep.FinishCallback = () =>
-                            {
-                                gameObjectToChange.GetComponent<TileScript>().Tile.Value += gameObjectToChange.GetComponent<TileScript>().Tile.Value;
-                                gameObjectToChange.GetComponent<TileScript>().UpdateText();
-                                gameObjectToChange.GetComponent<TileScript>().UpdateColor();
-                                Destroy(gameObjectToDelete);
-                                panel.DecrementAmountOfFilledSlots(1);
-                            };
-                        }
-                        animationStepsList.Add(animationStep);
-
-                        panel.Slots[finalCoordinate.x, finalCoordinate.y].Tile = actualSlot.Tile;
-                        panel.Slots[actualCoordinate.x, actualCoordinate.y].Tile = null;
-
-                        if (operation == SlotOperations.Fuse)
-                            break;
+                        MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }                                        
                 }
+                animationStepsQueueArray[y] = animationStepsQueue;
             }
         }
 
@@ -287,6 +313,7 @@ namespace Game.Scripts
         {
             for (int y = 0; y < 4; y++)
             {
+                Queue<AnimationStep> animationStepsQueue = new Queue<AnimationStep>();
                 for (int x = 3; x >= 0; x--)
                 {
                     if (panel.Slots[x, y].IsOccupied == false)
@@ -307,46 +334,18 @@ namespace Game.Scripts
                         actualCoordinate = new Vector2Int(xx, y);
                         finalCoordinate = new Vector2Int(xx + 1, y);
 
-                        Slot actualSlot = panel.Slots[actualCoordinate.x, actualCoordinate.y];
-                        Slot targetSlot = panel.Slots[finalCoordinate.x, finalCoordinate.y];
-
-                        AnimationStep animationStep = new AnimationStep();
-                        animationStep.GameObject = actualSlot.Tile.GameObject;
-                        animationStep.StartPoint = actualSlot.GameObject.transform.position;
-                        animationStep.EndPoint = targetSlot.GameObject.transform.position;
-                        animationStep.TotalTime = 0.2f;
-
-                        GameObject gameObjectToChange = actualSlot.Tile.GameObject;
-
-                        if (operation == SlotOperations.Fuse)
-                        {
-                            GameObject gameObjectToDelete = targetSlot.Tile.GameObject;
-
-                            animationStep.FinishCallback = () =>
-                            {
-                                gameObjectToChange.GetComponent<TileScript>().Tile.Value += gameObjectToChange.GetComponent<TileScript>().Tile.Value;
-                                gameObjectToChange.GetComponent<TileScript>().UpdateText();
-                                gameObjectToChange.GetComponent<TileScript>().UpdateColor();
-                                Destroy(gameObjectToDelete);
-                                panel.DecrementAmountOfFilledSlots(1);
-                            };
-                        }
-                        animationStepsList.Add(animationStep);
-
-                        panel.Slots[finalCoordinate.x, finalCoordinate.y].Tile = actualSlot.Tile;
-                        panel.Slots[actualCoordinate.x, actualCoordinate.y].Tile = null;
-
-                        if (operation == SlotOperations.Fuse)
-                            break;
+                        MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
-            }
+                animationStepsQueueArray[y] = animationStepsQueue;
+            }            
         }
 
         private void StartMovingAnimationToTheTop()
         {
             for (int x = 0; x < 4; x++)
             {
+                Queue<AnimationStep> animationStepsQueue = new Queue<AnimationStep>();
                 for (int y = 0; y < 4; y++)
                 {
                     if (panel.Slots[x, y].IsOccupied == false)
@@ -367,46 +366,18 @@ namespace Game.Scripts
                         actualCoordinate = new Vector2Int(x, yy);
                         finalCoordinate = new Vector2Int(x, yy - 1);
 
-                        Slot actualSlot = panel.Slots[actualCoordinate.x, actualCoordinate.y];
-                        Slot targetSlot = panel.Slots[finalCoordinate.x, finalCoordinate.y];
-
-                        AnimationStep animationStep = new AnimationStep();
-                        animationStep.GameObject = actualSlot.Tile.GameObject;
-                        animationStep.StartPoint = actualSlot.GameObject.transform.position;
-                        animationStep.EndPoint = targetSlot.GameObject.transform.position;
-                        animationStep.TotalTime = 0.2f;
-
-                        GameObject gameObjectToChange = actualSlot.Tile.GameObject;
-
-                        if (operation == SlotOperations.Fuse)
-                        {
-                            GameObject gameObjectToDelete = targetSlot.Tile.GameObject;
-
-                            animationStep.FinishCallback = () =>
-                            {
-                                gameObjectToChange.GetComponent<TileScript>().Tile.Value += gameObjectToChange.GetComponent<TileScript>().Tile.Value;
-                                gameObjectToChange.GetComponent<TileScript>().UpdateText();
-                                gameObjectToChange.GetComponent<TileScript>().UpdateColor();
-                                Destroy(gameObjectToDelete);
-                                panel.DecrementAmountOfFilledSlots(1);
-                            };
-                        }
-                        animationStepsList.Add(animationStep);
-
-                        panel.Slots[finalCoordinate.x, finalCoordinate.y].Tile = actualSlot.Tile;
-                        panel.Slots[actualCoordinate.x, actualCoordinate.y].Tile = null;
-
-                        if (operation == SlotOperations.Fuse)
-                            break;
+                        MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
-            }
+                animationStepsQueueArray[x] = animationStepsQueue;
+            }            
         }
 
         private void StartMovingAnimationToTheBottom()
-        {
+        {            
             for (int x = 0; x < 4; x++)
             {
+                Queue<AnimationStep> animationStepsQueue = new Queue<AnimationStep>();
                 for (int y = 3; y >= 0; y--)
                 {
                     if (panel.Slots[x, y].IsOccupied == false)
@@ -427,39 +398,10 @@ namespace Game.Scripts
                         actualCoordinate = new Vector2Int(x, yy);
                         finalCoordinate = new Vector2Int(x, yy + 1);
 
-                        Slot actualSlot = panel.Slots[actualCoordinate.x, actualCoordinate.y];
-                        Slot targetSlot = panel.Slots[finalCoordinate.x, finalCoordinate.y];
-
-                        AnimationStep animationStep = new AnimationStep();
-                        animationStep.GameObject = actualSlot.Tile.GameObject;
-                        animationStep.StartPoint = actualSlot.GameObject.transform.position;
-                        animationStep.EndPoint = targetSlot.GameObject.transform.position;
-                        animationStep.TotalTime = 0.2f;
-
-                        GameObject gameObjectToChange = actualSlot.Tile.GameObject;
-
-                        if (operation == SlotOperations.Fuse)
-                        {
-                            GameObject gameObjectToDelete = targetSlot.Tile.GameObject;
-
-                            animationStep.FinishCallback = () =>
-                            {
-                                gameObjectToChange.GetComponent<TileScript>().Tile.Value += gameObjectToChange.GetComponent<TileScript>().Tile.Value;
-                                gameObjectToChange.GetComponent<TileScript>().UpdateText();
-                                gameObjectToChange.GetComponent<TileScript>().UpdateColor();
-                                Destroy(gameObjectToDelete);
-                                panel.DecrementAmountOfFilledSlots(1);
-                            };
-                        }
-                        animationStepsList.Add(animationStep);
-
-                        panel.Slots[finalCoordinate.x, finalCoordinate.y].Tile = actualSlot.Tile;
-                        panel.Slots[actualCoordinate.x, actualCoordinate.y].Tile = null;
-
-                        if (operation == SlotOperations.Fuse)
-                            break;
+                        MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
+                animationStepsQueueArray[x] = animationStepsQueue;
             }
         }
 
@@ -470,6 +412,9 @@ namespace Game.Scripts
 
             Slot actualSlot = panel.Slots[x, y];
             Slot leftSlot = panel.Slots[x - 1, y];
+                
+            if (leftSlot.IsOccupied && leftSlot.Tile.Value != actualSlot.Tile.Value)
+                return SlotOperations.Stop;
 
             if (leftSlot.IsOccupied && leftSlot.Tile.Value == actualSlot.Tile.Value)
                 return SlotOperations.Fuse;
@@ -488,6 +433,9 @@ namespace Game.Scripts
             Slot actualSlot = panel.Slots[x, y];
             Slot rightSlot = panel.Slots[x + 1, y];
 
+            if (rightSlot.IsOccupied && rightSlot.Tile.Value != actualSlot.Tile.Value)
+                return SlotOperations.Stop;
+
             if (rightSlot.IsOccupied && rightSlot.Tile.Value == actualSlot.Tile.Value)
                 return SlotOperations.Fuse;
 
@@ -505,6 +453,9 @@ namespace Game.Scripts
             Slot actualSlot = panel.Slots[x, y];
             Slot topSlot = panel.Slots[x, y - 1];
 
+            if (topSlot.IsOccupied && topSlot.Tile.Value != actualSlot.Tile.Value)
+                return SlotOperations.Stop;
+
             if (topSlot.IsOccupied && topSlot.Tile.Value == actualSlot.Tile.Value)
                 return SlotOperations.Fuse;
 
@@ -521,6 +472,9 @@ namespace Game.Scripts
 
             Slot actualSlot = panel.Slots[x, y];
             Slot bottomSlot = panel.Slots[x, y + 1];
+
+            if (bottomSlot.IsOccupied && bottomSlot.Tile.Value != actualSlot.Tile.Value)
+                return SlotOperations.Stop;
 
             if (bottomSlot.IsOccupied && bottomSlot.Tile.Value == actualSlot.Tile.Value)
                 return SlotOperations.Fuse;

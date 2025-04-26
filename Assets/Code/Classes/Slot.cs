@@ -1,24 +1,22 @@
 using UnityEngine;
-using Game.Scripts;
 
 namespace Game.Classes
 {
     public class Slot
     {
-        public Slot(GameObject gameObject, Vector2Int coordinates)
+        public Slot(Vector2Int coordinates, GameObject gameObject)
         {
-            this.GameObject = gameObject;
-            this.Coordinates = coordinates;
+            Coordinates = coordinates;
+            GameObject = gameObject;
         }
 
-        public GameObject GameObject { get; private set; }
+        public GameObject GameObject { get; set; }
 
         public Tile Tile { get; set; }
 
         public Vector2Int Coordinates { get; private set; }
 
-        public bool IsOccupied
-        {
+        public bool IsOccupied { 
             get
             {
                 return Tile != null;

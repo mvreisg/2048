@@ -34,10 +34,10 @@ namespace Game.Classes
                 ElapsedTime += Time.deltaTime;
             }
             else
-            {
+            {                
                 actualPoint = EndPoint;                
             }
-            GameObject.transform.position = actualPoint;            
+            GameObject.transform.position = actualPoint;
         }
     }
 }
