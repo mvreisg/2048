@@ -47,5 +47,17 @@ namespace Game.Classes
         {
             amountOfFilledSlots -= amount;
         }
+
+        public void ClearAllSlots()
+        {
+            for (int x = 0; x < 4; x++)
+            {
+                for (int y = 0; y < 4; y++)
+                {
+                    Slots[x, y].Tile = null;
+                }
+            }
+            amountOfFilledSlots = 0;
+        }
     }
 }

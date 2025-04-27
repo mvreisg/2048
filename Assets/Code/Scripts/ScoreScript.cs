@@ -23,6 +23,12 @@ namespace Game.Scripts
             UpdateText();
         }
 
+        public void ResetScore()
+        {
+            Score.ResetScore();
+            UpdateText();
+        }
+
         private void UpdateText()
         {
             textBox.text = Score.ActualValue.ToString();

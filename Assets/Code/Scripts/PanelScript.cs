@@ -61,6 +61,9 @@ namespace Game.Scripts
         [SerializeField]
         private ScoreScript scoreScript;
 
+        [SerializeField]
+        private GameOverScript gameOverScript;
+
         private Queue<AnimationStep>[] animationStepsQueueArray = new Queue<AnimationStep>[4];
 
         private AnimationStep[] animationSteps = new AnimationStep[4];
@@ -71,8 +74,11 @@ namespace Game.Scripts
 
         private bool isToLockInput;
 
+        private GameController gameController;
+
         private void Awake()
         {
+            gameController = new GameController();
             panel = new Panel(4, 4);
         }
 
@@ -95,14 +101,11 @@ namespace Game.Scripts
             panel.Slots[3, 2] = slot_3_2.Slot;
             panel.Slots[3, 3] = slot_3_3.Slot;
 
-            for (int i = 0; i < 2; i++)
-            {
-                GenerateNewTile();
-            }            
+            StartGame();
         }
 
         private void Update()
-        {
+        {            
             for (int i = 0; i < animationStepsQueueArray.Length; i++)
             {
                 if (animationStepsQueueArray[i] == null)
@@ -142,6 +145,9 @@ namespace Game.Scripts
                 }
             }
 
+            if (gameController.IsGameOver)
+                return;
+
             if (isAnimationsHappening)
             {
                 return;
@@ -158,7 +164,6 @@ namespace Game.Scripts
 
             if (horizontal < 0f && isToLockInput == false)
             {
-                Debug.Log("a");
                 StartMovingAnimationToTheLeft();
                 isToLockInput = true;
                 return;
@@ -224,6 +229,34 @@ namespace Game.Scripts
             */
         }
 
+        public void StartGame()
+        {
+            Debug.Log("a");
+            scoreScript.ResetScore();
+
+            animationStepsQueueArray = new Queue<AnimationStep>[4];
+            animationSteps = new AnimationStep[4];
+
+            gameController.IsGameOver = false;
+
+            panel.ClearAllSlots();
+
+            TileScript[] tileScripts = FindObjectsByType<TileScript>(FindObjectsSortMode.InstanceID);
+            if (tileScripts.Length > 0)
+            {
+                for (int i = 0; i < tileScripts.Length; i++)
+                {
+                    TileScript script = tileScripts[i];
+                    Destroy(script.gameObject);
+                }
+            }            
+
+            for (int i = 0; i < 2; i++)
+            {
+                GenerateNewTile();
+            }
+        }
+
         private Vector2Int GetRandomSlotNumber()
         {
             int x = Random.Range(0, 4);
@@ -250,19 +283,72 @@ namespace Game.Scripts
             panel.Slots[x, y].Tile = tileScript.Tile;
 
             panel.IncrementAmountOfFilledSlots(1);
-        }
+        }        
 
         private void GenerateNewTile()
         {
-            if (panel.HasEmptySlots == false)
-                return;
-
-            Vector2Int coordinate = GetRandomSlotNumber();
-            while (CheckIfSlotIsOccupied(coordinate.x, coordinate.y))
+            if (gameController.IsGameOver)
             {
-                coordinate = GetRandomSlotNumber();
+                return;
             }
-            InstantiateTile(coordinate.x, coordinate.y);
+
+            if (panel.HasEmptySlots == false && CheckIfMovementIsAllowed() == false)
+            {
+                gameController.IsGameOver = true;
+                gameOverScript.ShowGameOverScreen();
+                return;
+            }
+
+            if (panel.HasEmptySlots)
+            {
+                Vector2Int coordinate = GetRandomSlotNumber();
+                while (CheckIfSlotIsOccupied(coordinate.x, coordinate.y))
+                {
+                    coordinate = GetRandomSlotNumber();
+                }
+                InstantiateTile(coordinate.x, coordinate.y);
+            }            
+        }
+
+        private bool CheckIfMovementIsAllowed()
+        {
+            GameOverConditionChecker checker = new GameOverConditionChecker();
+            for (int x = 0; x < 4; x++)
+            {
+                for (int y = 0; y < 4; y++)
+                {
+                    Slot actualSlot = panel.Slots[x, y];
+                    if (x - 1 >= 0)
+                    {
+                        Slot leftSlot = panel.Slots[x - 1, y];                        
+                        if (checker.CheckIfCanMove(actualSlot, leftSlot))
+                            return true;
+                    }
+
+                    if (x + 1 <= 3)
+                    {
+                        Slot rightSlot = panel.Slots[x + 1, y];
+                        if (checker.CheckIfCanMove(actualSlot, rightSlot))
+                            return true;
+                    }
+
+                    if (y - 1 >= 0)
+                    {
+                        Slot topSlot = panel.Slots[x, y - 1];
+                        if (checker.CheckIfCanMove(actualSlot, topSlot))
+                            return true;
+                    }
+
+                    if (y + 1 <= 3)
+                    {
+                        Slot bottomSlot = panel.Slots[x, y + 1];
+                        if (checker.CheckIfCanMove(actualSlot, bottomSlot))
+                            return true;
+                    }
+                }
+            }
+
+            return false;
         }
 
         private bool CheckIfSlotIsOccupied(int x, int y)
@@ -303,9 +389,10 @@ namespace Game.Scripts
                     tileScript.Tile = actualTile;
                     tileScript.UpdateText();
                     tileScript.UpdateColor();
-                    Destroy(gameObjectToDelete);
-                    panel.DecrementAmountOfFilledSlots(1);
+                    Destroy(gameObjectToDelete);                    
                 };
+
+                panel.DecrementAmountOfFilledSlots(1);
             }
 
             panel.Slots[actualCoordinate.x, actualCoordinate.y].Tile = null;
