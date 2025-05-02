@@ -48,11 +48,6 @@ namespace Game.Scripts
 
         public Tile Tile { get; set; }
 
-        private void Awake()
-        {
-            Tile = new Tile();            
-        }
-
         private void Start()
         {            
             UpdateText();
@@ -66,7 +61,7 @@ namespace Game.Scripts
 
         public void UpdateColor()
         {
-            if (Tile.Value < 8)
+            if (Tile.Value > 0 && Tile.Value <= 8)
             {
                 textBox.color = Color.black;
             }
@@ -78,7 +73,6 @@ namespace Game.Scripts
             switch (Tile.Value)
             {
                 case 2:
-
                     image.color = twoColor;
                     break;
                 case 4:
@@ -110,6 +104,9 @@ namespace Game.Scripts
                     break;
                 case 2048:
                     image.color = twoThousandFortyEightColor;
+                    break;
+                default:
+                    image.color = Color.black;
                     break;
             }
         }
