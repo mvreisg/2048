@@ -1,6 +1,5 @@
 using Game.Classes;
 using Game.Enums;
-using System.Collections.Generic;
 using UnityEngine;
 
 namespace Game.Scripts
@@ -56,29 +55,16 @@ namespace Game.Scripts
         private SlotScript slot_3_3;
 
         [SerializeField]
-        private GameObject TilePrefab;
-
-        [SerializeField]
-        private ScoreScript scoreScript;
-
-        [SerializeField]
-        private GameOverScript gameOverScript;
-
-        private Queue<AnimationStep>[] animationStepsQueueArray = new Queue<AnimationStep>[4];
-
-        private AnimationStep[] animationSteps = new AnimationStep[4];
+        private GameObject TilePrefab;     
 
         private Panel panel;
 
-        private bool isAnimationsHappening;
+        public Panel Panel => panel;
 
-        private bool isToLockInput;
-
-        private GameController gameController;
+        public bool PanelStarted { get; private set; }
 
         private void Awake()
         {
-            gameController = new GameController();
             panel = new Panel(4, 4);
         }
 
@@ -100,171 +86,17 @@ namespace Game.Scripts
             panel.Slots[3, 1] = slot_3_1.Slot;
             panel.Slots[3, 2] = slot_3_2.Slot;
             panel.Slots[3, 3] = slot_3_3.Slot;
-
-            StartGame();
+            PanelStarted = true;
         }
 
-        private void Update()
-        {            
-            for (int i = 0; i < animationStepsQueueArray.Length; i++)
-            {
-                if (animationStepsQueueArray[i] == null)
-                    continue;
-
-                if (animationSteps[i] == null && animationStepsQueueArray[i].Count > 0)
-                {
-                    animationSteps[i] = animationStepsQueueArray[i].Dequeue();
-                }
-            }
-            
-            for (int i = 0; i < animationSteps.Length; i++)
-            {
-                AnimationStep animationStep = animationSteps[i];
-                if (animationStep == null)
-                    continue;
-
-                animationStep.Update();
-                if (animationStep.CanContinue == false)
-                {
-                    animationStep.Update();
-                    animationStep.FinishCallback?.Invoke();
-                    animationSteps[i] = null;
-                }                
-            }
-
-            isAnimationsHappening = false;
-            for (int i = 0; i < animationStepsQueueArray.Length; i++)
-            {
-                if (animationStepsQueueArray[i] == null)
-                    continue;
-
-                if (animationStepsQueueArray[i].Count > 0)
-                {
-                    isAnimationsHappening = true;
-                    break;
-                }
-            }
-
-            if (gameController.IsGameOver)
-                return;
-
-            if (isAnimationsHappening)
-            {
-                return;
-            }
-            else if (isAnimationsHappening == false && isToLockInput)
-            {
-                isToLockInput = false;
-                GenerateNewTile();
-                return;
-            }
-
-            float horizontal = Input.GetAxis("Horizontal");
-            float vertical = Input.GetAxis("Vertical");
-
-            if (horizontal < 0f && isToLockInput == false)
-            {
-                StartMovingAnimationToTheLeft();
-                isToLockInput = true;
-                return;
-            }
-
-            if (horizontal > 0f && isToLockInput == false)
-            {
-                StartMovingAnimationToTheRight();
-                isToLockInput = true;
-                return;
-            }
-
-            if (vertical < 0f && isToLockInput == false)
-            {
-                StartMovingAnimationToTheBottom();
-                isToLockInput = true;
-                return;
-            }
-
-            if (vertical > 0f && isToLockInput == false)
-            {
-                StartMovingAnimationToTheTop();
-                isToLockInput = true;
-                return;
-            }
-
-            /*
-            bool left = Input.GetKeyDown(KeyCode.A);
-            bool right = Input.GetKeyDown(KeyCode.D);
-            bool top = Input.GetKeyDown(KeyCode.W);
-            bool bottom = Input.GetKeyDown(KeyCode.S);
-            if (left && right == false && top == false && bottom == false && isToLockInput == false)
-            {
-                Debug.Log("para a esquerda");
-                StartMovingAnimationToTheLeft();
-                isToLockInput = true;
-                return;
-            }
-
-            if (left == false && right && top == false && bottom == false && isToLockInput == false)
-            {
-                Debug.Log("para a direita");
-                StartMovingAnimationToTheRight();
-                isToLockInput = true;
-                return;
-            }
-
-            if (left == false && right == false && top && bottom == false && isToLockInput == false)
-            {
-                Debug.Log("para cima");
-                StartMovingAnimationToTheTop();
-                isToLockInput = true;
-                return;
-            }
-
-            if (left == false && right == false && top == false && bottom && isToLockInput == false)
-            {
-                Debug.Log("para baixo");
-                StartMovingAnimationToTheBottom();
-                isToLockInput = true;
-                return;
-            }
-            */
-        }
-
-        public void StartGame()
-        {
-            Debug.Log("a");
-            scoreScript.ResetScore();
-
-            animationStepsQueueArray = new Queue<AnimationStep>[4];
-            animationSteps = new AnimationStep[4];
-
-            gameController.IsGameOver = false;
-
-            panel.ClearAllSlots();
-
-            TileScript[] tileScripts = FindObjectsByType<TileScript>(FindObjectsSortMode.InstanceID);
-            if (tileScripts.Length > 0)
-            {
-                for (int i = 0; i < tileScripts.Length; i++)
-                {
-                    TileScript script = tileScripts[i];
-                    Destroy(script.gameObject);
-                }
-            }            
-
-            for (int i = 0; i < 2; i++)
-            {
-                GenerateNewTile();
-            }
-        }
-
-        private Vector2Int GetRandomSlotNumber()
+        public Vector2Int GetRandomSlotNumber()
         {
             int x = Random.Range(0, 4);
             int y = Random.Range(0, 4);
             return new Vector2Int(x, y);
         }
 
-        private void InstantiateTile(int x, int y)
+        public void InstantiateTile(int x, int y)
         {
             if (panel.HasEmptySlots == false)
                 return;
@@ -285,32 +117,7 @@ namespace Game.Scripts
             panel.IncrementAmountOfFilledSlots(1);
         }        
 
-        private void GenerateNewTile()
-        {
-            if (gameController.IsGameOver)
-            {
-                return;
-            }
-
-            if (panel.HasEmptySlots == false && CheckIfMovementIsAllowed() == false)
-            {
-                gameController.IsGameOver = true;
-                gameOverScript.ShowGameOverScreen();
-                return;
-            }
-
-            if (panel.HasEmptySlots)
-            {
-                Vector2Int coordinate = GetRandomSlotNumber();
-                while (CheckIfSlotIsOccupied(coordinate.x, coordinate.y))
-                {
-                    coordinate = GetRandomSlotNumber();
-                }
-                InstantiateTile(coordinate.x, coordinate.y);
-            }            
-        }
-
-        private bool CheckIfMovementIsAllowed()
+        public bool CheckIfMovementIsAllowed()
         {
             GameOverConditionChecker checker = new GameOverConditionChecker();
             for (int x = 0; x < 4; x++)
@@ -351,193 +158,19 @@ namespace Game.Scripts
             return false;
         }
 
-        private bool CheckIfSlotIsOccupied(int x, int y)
+        public bool CheckIfSlotIsOccupied(int x, int y)
         {
             return panel.Slots[x, y].IsOccupied;
         }
 
-        private void MakeAnimationLogic (
-            Queue<AnimationStep> animationStepsQueue, 
-            SlotOperations operation, 
-            Vector2Int actualCoordinate, 
-            Vector2Int finalCoordinate) 
-        {
-            Slot actualSlot = panel.Slots[actualCoordinate.x, actualCoordinate.y];
-            Slot finalSlot = panel.Slots[finalCoordinate.x, finalCoordinate.y];
-
-            Tile actualTile = actualSlot.Tile;
-            Tile finalTile = finalSlot.Tile;
-
-            GameObject gameObjectToChange = actualTile.GameObject;
-
-            AnimationStep animationStep = new AnimationStep();
-            animationStep.GameObject = gameObjectToChange;
-            animationStep.StartPoint = actualSlot.GameObject.transform.position;
-            animationStep.EndPoint = finalSlot.GameObject.transform.position;
-            animationStep.TotalTime = 0.1f;
-            actualTile.Coordinates = finalCoordinate;
-
-            if (operation == SlotOperations.Fuse)
-            {
-                GameObject gameObjectToDelete = finalTile.GameObject;
-
-                actualTile.Value += finalTile.Value;
-                scoreScript.IncreaseScoreBy(actualTile.Value);
-
-                animationStep.FinishCallback = () => {
-                    TileScript tileScript = gameObjectToChange.GetComponent<TileScript>();
-                    tileScript.Tile = actualTile;
-                    tileScript.UpdateText();
-                    tileScript.UpdateColor();
-                    Destroy(gameObjectToDelete);                    
-                };
-
-                panel.DecrementAmountOfFilledSlots(1);
-            }
-
-            panel.Slots[actualCoordinate.x, actualCoordinate.y].Tile = null;
-            panel.Slots[finalCoordinate.x, finalCoordinate.y].Tile = actualTile;
-
-            animationStepsQueue.Enqueue(animationStep);
-        }
-
-        private void StartMovingAnimationToTheLeft()
-        {            
-            for (int y = 0; y < 4; y++)
-            {
-                Queue<AnimationStep> animationStepsQueue = new Queue<AnimationStep>();
-                for (int x = 0; x < 4; x++)
-                {
-                    if (panel.Slots[x, y].IsOccupied == false)
-                    {
-                        continue;
-                    }
-
-                    Vector2Int actualCoordinate = new Vector2Int(x, y);
-                    Vector2Int finalCoordinate = new Vector2Int(x, y);
-
-                    SlotOperations operation = SlotOperations.Stop;
-                    for (int xx = x; xx > 0; xx--)
-                    {
-                        operation = TryMoveToLeft(xx, y);
-
-                        if (operation == SlotOperations.Stop)
-                            break;
-
-                        actualCoordinate = new Vector2Int(xx, y);
-                        finalCoordinate = new Vector2Int(xx - 1, y);
-
-                        MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
-                    }                                        
-                }
-                animationStepsQueueArray[y] = animationStepsQueue;
-            }
-        }
-
-        private void StartMovingAnimationToTheRight()
-        {
-            for (int y = 0; y < 4; y++)
-            {
-                Queue<AnimationStep> animationStepsQueue = new Queue<AnimationStep>();
-                for (int x = 3; x >= 0; x--)
-                {
-                    if (panel.Slots[x, y].IsOccupied == false)
-                    {
-                        continue;
-                    }
-
-                    Vector2Int actualCoordinate = new Vector2Int(x, y);
-                    Vector2Int finalCoordinate = new Vector2Int(x, y);
-
-                    SlotOperations operation = SlotOperations.Stop;
-                    for (int xx = x; xx < 4; xx++)
-                    {
-                        operation = TryMoveToRight(xx, y);
-                        if (operation == SlotOperations.Stop)
-                            break;
-
-                        actualCoordinate = new Vector2Int(xx, y);
-                        finalCoordinate = new Vector2Int(xx + 1, y);
-
-                        MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
-                    }
-                }
-                animationStepsQueueArray[y] = animationStepsQueue;
-            }            
-        }
-
-        private void StartMovingAnimationToTheTop()
-        {
-            for (int x = 0; x < 4; x++)
-            {
-                Queue<AnimationStep> animationStepsQueue = new Queue<AnimationStep>();
-                for (int y = 0; y < 4; y++)
-                {
-                    if (panel.Slots[x, y].IsOccupied == false)
-                    {
-                        continue;
-                    }
-
-                    Vector2Int actualCoordinate = new Vector2Int(x, y);
-                    Vector2Int finalCoordinate = new Vector2Int(x, y);
-
-                    SlotOperations operation = SlotOperations.Stop;
-                    for (int yy = y; y >= 0; yy--)
-                    {
-                        operation = TryMoveToTop(x, yy);
-                        if (operation == SlotOperations.Stop)
-                            break;
-
-                        actualCoordinate = new Vector2Int(x, yy);
-                        finalCoordinate = new Vector2Int(x, yy - 1);
-
-                        MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
-                    }
-                }
-                animationStepsQueueArray[x] = animationStepsQueue;
-            }            
-        }
-
-        private void StartMovingAnimationToTheBottom()
-        {            
-            for (int x = 0; x < 4; x++)
-            {
-                Queue<AnimationStep> animationStepsQueue = new Queue<AnimationStep>();
-                for (int y = 3; y >= 0; y--)
-                {
-                    if (panel.Slots[x, y].IsOccupied == false)
-                    {
-                        continue;
-                    }
-
-                    Vector2Int actualCoordinate = new Vector2Int(x, y);
-                    Vector2Int finalCoordinate = new Vector2Int(x, y);
-
-                    SlotOperations operation = SlotOperations.Stop;
-                    for (int yy = y; y < 4; yy++)
-                    {
-                        operation = TryMoveToBottom(x, yy);
-                        if (operation == SlotOperations.Stop)
-                            break;
-
-                        actualCoordinate = new Vector2Int(x, yy);
-                        finalCoordinate = new Vector2Int(x, yy + 1);
-
-                        MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
-                    }
-                }
-                animationStepsQueueArray[x] = animationStepsQueue;
-            }
-        }
-
-        private SlotOperations TryMoveToLeft(int x, int y)
+        public SlotOperations TryMoveToLeft(int x, int y)
         {
             if (x - 1 < 0)
                 return SlotOperations.Stop;
 
             Slot actualSlot = panel.Slots[x, y];
             Slot leftSlot = panel.Slots[x - 1, y];
-                
+
             if (leftSlot.IsOccupied && leftSlot.Tile.Value != actualSlot.Tile.Value)
                 return SlotOperations.Stop;
 
@@ -550,7 +183,7 @@ namespace Game.Scripts
             return SlotOperations.Move;
         }
 
-        private SlotOperations TryMoveToRight(int x, int y)
+        public SlotOperations TryMoveToRight(int x, int y)
         {
             if (x + 1 >= 4)
                 return SlotOperations.Stop;
@@ -570,7 +203,7 @@ namespace Game.Scripts
             return SlotOperations.Move;
         }
 
-        private SlotOperations TryMoveToTop(int x, int y)
+        public SlotOperations TryMoveToTop(int x, int y)
         {
             if (y - 1 < 0)
                 return SlotOperations.Stop;
@@ -590,7 +223,7 @@ namespace Game.Scripts
             return SlotOperations.Move;
         }
 
-        private SlotOperations TryMoveToBottom(int x, int y)
+        public SlotOperations TryMoveToBottom(int x, int y)
         {
             if (y + 1 >= 4)
                 return SlotOperations.Stop;

@@ -5,18 +5,16 @@ namespace Game.Scripts
     public class GameOverScript : MonoBehaviour
     {
         [SerializeField]
-        private GameObject gameOverGameObject;
+        private GameObject gameOverPanel;
 
-        public void ShowGameOverScreen()
+        public void ShowGameOverPanel()
         {
-            Debug.Log("1");
-            gameOverGameObject.SetActive(true);
+            gameOverPanel.SetActive(true);
         }
 
-        public void HideGameOverScreen()
+        public void HideGameOverPanel()
         {
-            Debug.Log("2");
-            gameOverGameObject.SetActive(false);
+            gameOverPanel.SetActive(false);
         }
     }
 }
