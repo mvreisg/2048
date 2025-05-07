@@ -19,9 +19,9 @@ namespace Game.Scripts
         [SerializeField]
         private ScoreScript scoreScript;
 
-        private Queue<AnimationStep>[] animationStepsQueueArray = new Queue<AnimationStep>[4];
+        private Queue<TileTranslationAnimationStep>[] tileTranslationAnimationStepsQueueArray = new Queue<TileTranslationAnimationStep>[4];
 
-        private AnimationStep[] animationSteps = new AnimationStep[4];
+        private TileTranslationAnimationStep[] tileTranslationAnimationStepsArray = new TileTranslationAnimationStep[4];
 
         private GameController gameController;
 
@@ -49,20 +49,20 @@ namespace Game.Scripts
             if (gameController.HasFirstStarted == false)
                 return;
 
-            for (int i = 0; i < animationStepsQueueArray.Length; i++)
+            for (int i = 0; i < tileTranslationAnimationStepsQueueArray.Length; i++)
             {
-                if (animationStepsQueueArray[i] == null)
+                if (tileTranslationAnimationStepsQueueArray[i] == null)
                     continue;
 
-                if (animationSteps[i] == null && animationStepsQueueArray[i].Count > 0)
+                if (tileTranslationAnimationStepsArray[i] == null && tileTranslationAnimationStepsQueueArray[i].Count > 0)
                 {
-                    animationSteps[i] = animationStepsQueueArray[i].Dequeue();
+                    tileTranslationAnimationStepsArray[i] = tileTranslationAnimationStepsQueueArray[i].Dequeue();
                 }
             }
 
-            for (int i = 0; i < animationSteps.Length; i++)
+            for (int i = 0; i < tileTranslationAnimationStepsArray.Length; i++)
             {
-                AnimationStep animationStep = animationSteps[i];
+                TileTranslationAnimationStep animationStep = tileTranslationAnimationStepsArray[i];
                 if (animationStep == null)
                     continue;
 
@@ -71,17 +71,17 @@ namespace Game.Scripts
                 {
                     animationStep.Update();
                     animationStep.FinishCallback?.Invoke();
-                    animationSteps[i] = null;
+                    tileTranslationAnimationStepsArray[i] = null;
                 }
             }
 
             isAnimationsHappening = false;
-            for (int i = 0; i < animationStepsQueueArray.Length; i++)
+            for (int i = 0; i < tileTranslationAnimationStepsQueueArray.Length; i++)
             {
-                if (animationStepsQueueArray[i] == null)
+                if (tileTranslationAnimationStepsQueueArray[i] == null)
                     continue;
 
-                if (animationStepsQueueArray[i].Count > 0)
+                if (tileTranslationAnimationStepsQueueArray[i].Count > 0)
                 {
                     isAnimationsHappening = true;
                     break;
@@ -153,8 +153,8 @@ namespace Game.Scripts
 
             scoreScript.ResetScore();
 
-            animationStepsQueueArray = new Queue<AnimationStep>[4];
-            animationSteps = new AnimationStep[4];
+            tileTranslationAnimationStepsQueueArray = new Queue<TileTranslationAnimationStep>[4];
+            tileTranslationAnimationStepsArray = new TileTranslationAnimationStep[4];
 
             gameController.IsGameOver = false;
 
@@ -201,7 +201,7 @@ namespace Game.Scripts
             }
         }
 
-        private void MakeAnimationLogic(Queue<AnimationStep> animationStepsQueue, SlotOperations operation, Vector2Int actualCoordinate, Vector2Int finalCoordinate)
+        private void MakeAnimationLogic(Queue<TileTranslationAnimationStep> animationStepsQueue, SlotOperations operation, Vector2Int actualCoordinate, Vector2Int finalCoordinate)
         {
             Slot actualSlot = panelScript.Panel.Slots[actualCoordinate.x, actualCoordinate.y];
             Slot finalSlot = panelScript.Panel.Slots[finalCoordinate.x, finalCoordinate.y];
@@ -211,7 +211,7 @@ namespace Game.Scripts
 
             GameObject gameObjectToChange = actualTile.GameObject;
 
-            AnimationStep animationStep = new AnimationStep();
+            TileTranslationAnimationStep animationStep = new TileTranslationAnimationStep();
             animationStep.GameObject = gameObjectToChange;
             animationStep.StartPoint = actualSlot.GameObject.transform.position;
             animationStep.EndPoint = finalSlot.GameObject.transform.position;
@@ -245,7 +245,7 @@ namespace Game.Scripts
         {
             for (int y = 0; y < 4; y++)
             {
-                Queue<AnimationStep> animationStepsQueue = new Queue<AnimationStep>();
+                Queue<TileTranslationAnimationStep> animationStepsQueue = new Queue<TileTranslationAnimationStep>();
                 for (int x = 0; x < 4; x++)
                 {
                     if (panelScript.Panel.Slots[x, y].IsOccupied == false)
@@ -270,7 +270,7 @@ namespace Game.Scripts
                         MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
-                animationStepsQueueArray[y] = animationStepsQueue;
+                tileTranslationAnimationStepsQueueArray[y] = animationStepsQueue;
             }
         }
 
@@ -278,7 +278,7 @@ namespace Game.Scripts
         {
             for (int y = 0; y < 4; y++)
             {
-                Queue<AnimationStep> animationStepsQueue = new Queue<AnimationStep>();
+                Queue<TileTranslationAnimationStep> animationStepsQueue = new Queue<TileTranslationAnimationStep>();
                 for (int x = 3; x >= 0; x--)
                 {
                     if (panelScript.Panel.Slots[x, y].IsOccupied == false)
@@ -302,7 +302,7 @@ namespace Game.Scripts
                         MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
-                animationStepsQueueArray[y] = animationStepsQueue;
+                tileTranslationAnimationStepsQueueArray[y] = animationStepsQueue;
             }
         }
 
@@ -310,7 +310,7 @@ namespace Game.Scripts
         {
             for (int x = 0; x < 4; x++)
             {
-                Queue<AnimationStep> animationStepsQueue = new Queue<AnimationStep>();
+                Queue<TileTranslationAnimationStep> animationStepsQueue = new Queue<TileTranslationAnimationStep>();
                 for (int y = 0; y < 4; y++)
                 {
                     if (panelScript.Panel.Slots[x, y].IsOccupied == false)
@@ -334,7 +334,7 @@ namespace Game.Scripts
                         MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
-                animationStepsQueueArray[x] = animationStepsQueue;
+                tileTranslationAnimationStepsQueueArray[x] = animationStepsQueue;
             }
         }
 
@@ -342,7 +342,7 @@ namespace Game.Scripts
         {
             for (int x = 0; x < 4; x++)
             {
-                Queue<AnimationStep> animationStepsQueue = new Queue<AnimationStep>();
+                Queue<TileTranslationAnimationStep> animationStepsQueue = new Queue<TileTranslationAnimationStep>();
                 for (int y = 3; y >= 0; y--)
                 {
                     if (panelScript.Panel.Slots[x, y].IsOccupied == false)
@@ -366,7 +366,7 @@ namespace Game.Scripts
                         MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
-                animationStepsQueueArray[x] = animationStepsQueue;
+                tileTranslationAnimationStepsQueueArray[x] = animationStepsQueue;
             }
         }        
     }

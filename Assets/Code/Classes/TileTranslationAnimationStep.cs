@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace Game.Classes
 {
-    public class AnimationStep
+    public class TileTranslationAnimationStep
     {
         public GameObject GameObject { get; set; }
 
