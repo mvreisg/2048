@@ -96,10 +96,10 @@ namespace Game.Scripts
             return new Vector2Int(x, y);
         }
 
-        public void InstantiateTile(int x, int y)
+        public Tile InstantiateTile(int x, int y)
         {
             if (panel.HasEmptySlots == false)
-                return;
+                return null;
 
             GameObject gameObject = Instantiate(
                 TilePrefab,
@@ -110,11 +110,13 @@ namespace Game.Scripts
 
             TileScript tileScript = gameObject.GetComponent<TileScript>();
 
-            tileScript.Tile = new Tile(new Vector2Int(x, y), 2, tileScript.gameObject);
+            tileScript.Tile = new Tile(new Vector2Int(x, y), 2, tileScript.gameObject);            
 
             panel.Slots[x, y].Tile = tileScript.Tile;
 
             panel.IncrementAmountOfFilledSlots(1);
+
+            return panel.Slots[x, y].Tile;
         }        
 
         public bool CheckIfMovementIsAllowed()

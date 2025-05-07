@@ -23,6 +23,8 @@ namespace Game.Scripts
 
         private TileTranslationAnimationStep[] tileTranslationAnimationStepsArray = new TileTranslationAnimationStep[4];
 
+        private List<TileScalingAnimationStep> tileScalingAnimationStepsList = new List<TileScalingAnimationStep>();
+
         private GameController gameController;
 
         private bool isAnimationsHappening;
@@ -75,6 +77,21 @@ namespace Game.Scripts
                 }
             }
 
+            for (int i = 0; i < tileScalingAnimationStepsList.Count; i++)
+            {
+                TileScalingAnimationStep animationStep = tileScalingAnimationStepsList[i];
+                if (animationStep == null)
+                    continue;
+
+                animationStep.Update();
+                if (animationStep.CanContinue == false)
+                {
+                    animationStep.Update();
+                    animationStep.FinishCallback?.Invoke();
+                    tileScalingAnimationStepsList.Remove(animationStep);
+                }
+            }
+
             isAnimationsHappening = false;
             for (int i = 0; i < tileTranslationAnimationStepsQueueArray.Length; i++)
             {
@@ -88,7 +105,18 @@ namespace Game.Scripts
                 }
             }
 
-            
+            for (int i = 0; i < tileScalingAnimationStepsList.Count; i++)
+            {
+                if (tileScalingAnimationStepsList[i] == null)
+                    continue;
+
+                if (tileScalingAnimationStepsList.Count > 0)
+                {
+                    isAnimationsHappening = true;
+                    break;
+                }
+            }
+
             if (gameController.IsGameOver && submit > 0f)
             {
                 gameOverScript.HideGameOverPanel();
@@ -148,13 +176,14 @@ namespace Game.Scripts
         }
 
         public void StartGame()
-        {
+        {            
             gameController.HasFirstStarted = true;
 
             scoreScript.ResetScore();
 
             tileTranslationAnimationStepsQueueArray = new Queue<TileTranslationAnimationStep>[4];
             tileTranslationAnimationStepsArray = new TileTranslationAnimationStep[4];
+            tileScalingAnimationStepsList.Clear();
 
             gameController.IsGameOver = false;
 
@@ -197,11 +226,24 @@ namespace Game.Scripts
                 {
                     coordinate = panelScript.GetRandomSlotNumber();
                 }
-                panelScript.InstantiateTile(coordinate.x, coordinate.y);
+                Tile instantiatedTile = panelScript.InstantiateTile(coordinate.x, coordinate.y);
+
+                if (instantiatedTile == null)
+                {
+                    return;
+                }
+
+                TileScalingAnimationStep step = new TileScalingAnimationStep();
+                step.StartPoint = Vector3.zero;
+                step.EndPoint = Vector3.one;
+                step.TotalTime = 0.1f;
+                step.GameObject = instantiatedTile.GameObject;
+                    
+                tileScalingAnimationStepsList.Add(step);
             }
         }
 
-        private void MakeAnimationLogic(Queue<TileTranslationAnimationStep> animationStepsQueue, SlotOperations operation, Vector2Int actualCoordinate, Vector2Int finalCoordinate)
+        private void MakeTranslationAnimationLogic(Queue<TileTranslationAnimationStep> animationStepsQueue, SlotOperations operation, Vector2Int actualCoordinate, Vector2Int finalCoordinate)
         {
             Slot actualSlot = panelScript.Panel.Slots[actualCoordinate.x, actualCoordinate.y];
             Slot finalSlot = panelScript.Panel.Slots[finalCoordinate.x, finalCoordinate.y];
@@ -267,7 +309,7 @@ namespace Game.Scripts
                         actualCoordinate = new Vector2Int(xx, y);
                         finalCoordinate = new Vector2Int(xx - 1, y);
 
-                        MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
+                        MakeTranslationAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
                 tileTranslationAnimationStepsQueueArray[y] = animationStepsQueue;
@@ -299,7 +341,7 @@ namespace Game.Scripts
                         actualCoordinate = new Vector2Int(xx, y);
                         finalCoordinate = new Vector2Int(xx + 1, y);
 
-                        MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
+                        MakeTranslationAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
                 tileTranslationAnimationStepsQueueArray[y] = animationStepsQueue;
@@ -331,7 +373,7 @@ namespace Game.Scripts
                         actualCoordinate = new Vector2Int(x, yy);
                         finalCoordinate = new Vector2Int(x, yy - 1);
 
-                        MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
+                        MakeTranslationAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
                 tileTranslationAnimationStepsQueueArray[x] = animationStepsQueue;
@@ -363,7 +405,7 @@ namespace Game.Scripts
                         actualCoordinate = new Vector2Int(x, yy);
                         finalCoordinate = new Vector2Int(x, yy + 1);
 
-                        MakeAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
+                        MakeTranslationAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
                 tileTranslationAnimationStepsQueueArray[x] = animationStepsQueue;

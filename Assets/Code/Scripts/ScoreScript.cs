@@ -7,7 +7,10 @@ namespace Game.Scripts
     public class ScoreScript : MonoBehaviour
     {
         [SerializeField]
-        private TextMeshProUGUI textBox;
+        private TextMeshProUGUI actualScoreTextBox;
+
+        [SerializeField]
+        private TextMeshProUGUI maxScoreTextBox;
 
         private Score Score { get; set; }
 
@@ -31,7 +34,8 @@ namespace Game.Scripts
 
         private void UpdateText()
         {
-            textBox.text = Score.ActualValue.ToString();
+            actualScoreTextBox.text = Score.ActualValue.ToString();
+            maxScoreTextBox.text = Score.MaxValue.ToString();
         }
     }
 }
