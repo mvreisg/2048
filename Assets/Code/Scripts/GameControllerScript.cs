@@ -17,7 +17,13 @@ namespace Game.Scripts
         private GameOverScript gameOverScript;
 
         [SerializeField]
+        private VictoryScript victoryScript;
+
+        [SerializeField]
         private ScoreScript scoreScript;
+
+        [SerializeField]
+        private RestartButtonScript restartButtonScript;
 
         private Queue<TileTranslationAnimationStep>[] tileTranslationAnimationStepsQueueArray = new Queue<TileTranslationAnimationStep>[4];
 
@@ -39,6 +45,7 @@ namespace Game.Scripts
         private void Update()
         {
             float submit = Input.GetAxis("Submit");
+            float jump = Input.GetAxis("Jump");
             if (panelScript.PanelStarted == false)
                 return;
 
@@ -46,9 +53,11 @@ namespace Game.Scripts
             {
                 startGameScript.HideStartGamePanel();
                 gameController.HasFirstStarted = true;
+                StartGame();
+                return;
             }
             
-            if (gameController.HasFirstStarted == false)
+            if (gameController.HasFirstStarted == false && gameController.HasRestarted == false)
                 return;
 
             for (int i = 0; i < tileTranslationAnimationStepsQueueArray.Length; i++)
@@ -117,20 +126,45 @@ namespace Game.Scripts
                 }
             }
 
-            if (gameController.IsGameOver && submit > 0f)
+            if (scoreScript.CheckVictory() && gameController.HasWon == false)
             {
-                gameOverScript.HideGameOverPanel();
-                StartGame();
+                if (restartButtonScript.IsInteractable)
+                    restartButtonScript.Disable();
+
+                gameController.HasWon = true;
+                victoryScript.ShowVictoryPanel();
+                return;
             }
 
-            if (gameController.IsGameOver == false && submit > 0f)
+            if (gameController.HasWon && gameController.IsEndless == false && submit > 0f)
             {
-                gameOverScript.HideGameOverPanel();
-                StartGame();
+                victoryScript.HideVictoryPanel();
+                StartEndless();
+                return;
+            }
+
+            if ((gameController.IsGameOver && submit > 0f) || (gameController.IsEndless && submit > 0f))
+            {
+                if (gameController.IsEndless)
+                    gameOverScript.HideGameOverPanel();
+
+                restartButtonScript.Enable();
+                RestartGame();
+                return;
             }
 
             if (gameController.IsGameOver)
+            {
+                if (restartButtonScript.IsInteractable)
+                    restartButtonScript.Disable();
+
                 return;
+            }                
+
+            if (gameController.HasWon && gameController.IsEndless == false)
+            {
+                return;
+            }
 
             if (isAnimationsHappening)
             {
@@ -175,17 +209,20 @@ namespace Game.Scripts
             }
         }
 
-        public void StartGame()
-        {            
-            gameController.HasFirstStarted = true;
-
+        private void BootGame()
+        {
             scoreScript.ResetScore();
 
             tileTranslationAnimationStepsQueueArray = new Queue<TileTranslationAnimationStep>[4];
             tileTranslationAnimationStepsArray = new TileTranslationAnimationStep[4];
-            tileScalingAnimationStepsList.Clear();
 
-            gameController.IsGameOver = false;
+            for (int i = 0; i < tileScalingAnimationStepsList.Count; i++)
+            {
+                GameObject gameObject = tileScalingAnimationStepsList[i].GameObject;
+                Destroy(gameObject);
+            }
+
+            tileScalingAnimationStepsList.Clear();
 
             panelScript.Panel.ClearAllSlots();
 
@@ -203,6 +240,35 @@ namespace Game.Scripts
             {
                 GenerateNewTile();
             }
+        }
+
+        public void StartGame()
+        {
+            gameController.IsGameOver = false;
+            gameController.HasWon = false;
+            gameController.HasFirstStarted = true;
+            gameController.IsEndless = false;
+            gameController.HasRestarted = false;
+            
+            BootGame();
+        }
+
+        public void RestartGame()
+        {
+            gameController.IsGameOver = false;
+            gameController.HasWon = false;
+            gameController.HasFirstStarted = false;
+            gameController.IsEndless = false;
+            gameController.HasRestarted = true;
+            isToLockInput = false;
+
+            BootGame();
+        }
+
+        public void StartEndless()
+        {
+            victoryScript.HideVictoryPanel();
+            gameController.IsEndless = true;
         }
 
         private void GenerateNewTile()

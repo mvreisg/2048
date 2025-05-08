@@ -32,6 +32,11 @@ namespace Game.Scripts
             UpdateText();
         }
 
+        public bool CheckVictory()
+        {
+            return Score.CheckVictory();
+        }
+
         private void UpdateText()
         {
             actualScoreTextBox.text = Score.ActualValue.ToString();
