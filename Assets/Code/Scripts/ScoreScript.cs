@@ -12,11 +12,14 @@ namespace Game.Scripts
         [SerializeField]
         private TextMeshProUGUI maxScoreTextBox;
 
+        [SerializeField]
+        private int winningScore;
+
         private Score Score { get; set; }
 
         private void Awake()
         {
-            Score = new Score();
+            Score = new Score(winningScore);
             UpdateText();
         }
 
@@ -32,9 +35,9 @@ namespace Game.Scripts
             UpdateText();
         }
 
-        public bool CheckVictory()
+        public bool CheckVictory(int value)
         {
-            return Score.CheckVictory();
+            return Score.CheckVictory(value);
         }
 
         private void UpdateText()

@@ -14,37 +14,10 @@ namespace Game.Scripts
         private TextMeshProUGUI textBox;
 
         [SerializeField]
-        private Color twoColor;
+        private Color initialColor;
 
         [SerializeField]
-        private Color fourColor;
-
-        [SerializeField]
-        private Color eightColor;
-
-        [SerializeField]
-        private Color sixteenColor;
-
-        [SerializeField]
-        private Color thirtyTwoColor;
-
-        [SerializeField]
-        private Color sixtyFourColor;
-
-        [SerializeField]
-        private Color oneHundredTwentyEightColor;
-
-        [SerializeField]
-        private Color twoHundredFiftySixColor;
-
-        [SerializeField]
-        private Color fiveHundredTwelveColor;
-
-        [SerializeField]
-        private Color oneThousandTwentyFourColor;
-
-        [SerializeField]
-        private Color twoThousandFortyEightColor;
+        private Color finalColor;
 
         public Tile Tile { get; set; }
 
@@ -61,54 +34,16 @@ namespace Game.Scripts
 
         public void UpdateColor()
         {
-            if (Tile.Value > 0 && Tile.Value <= 8)
-            {
-                textBox.color = Color.black;
-            }
-            else
-            {
-                textBox.color = Color.white;
-            }
+            textBox.color = Color.white;
 
-            switch (Tile.Value)
+            float value = Mathf.Log(Tile.Value, 2);
+            float maxValue = 11;
+            if (value > maxValue)
             {
-                case 2:
-                    image.color = twoColor;
-                    break;
-                case 4:
-                    image.color = fourColor;
-                    break;
-                case 8:
-                    image.color = eightColor;
-                    break;
-                case 16:
-                    image.color = sixteenColor;
-                    break;
-                case 32:
-                    image.color = thirtyTwoColor;
-                    break;
-                case 64:
-                    image.color = sixtyFourColor;
-                    break;
-                case 128:
-                    image.color = oneHundredTwentyEightColor;
-                    break;
-                case 256:
-                    image.color = twoHundredFiftySixColor;
-                    break;
-                case 512:
-                    image.color = fiveHundredTwelveColor;
-                    break;
-                case 1024:
-                    image.color = oneThousandTwentyFourColor;
-                    break;
-                case 2048:
-                    image.color = twoThousandFortyEightColor;
-                    break;
-                default:
-                    image.color = Color.black;
-                    break;
+                image.color = finalColor;
+                return;
             }
+            image.color = Color.Lerp(initialColor, finalColor, value / maxValue);
         }
     }
 }

@@ -2,6 +2,7 @@ using Game.Classes;
 using Game.Enums;
 using System.Collections.Generic;
 using UnityEngine;
+using static UnityEngine.Rendering.DebugUI;
 
 namespace Game.Scripts
 {
@@ -46,13 +47,13 @@ namespace Game.Scripts
         {
             float submit = Input.GetAxis("Submit");
             float jump = Input.GetAxis("Jump");
+
             if (panelScript.PanelStarted == false)
                 return;
 
             if (gameController.HasFirstStarted == false && submit > 0f)
             {
                 startGameScript.HideStartGamePanel();
-                gameController.HasFirstStarted = true;
                 StartGame();
                 return;
             }
@@ -126,26 +127,38 @@ namespace Game.Scripts
                 }
             }
 
-            if (scoreScript.CheckVictory() && gameController.HasWon == false)
+            if (gameController.HasWon == false)
             {
-                if (restartButtonScript.IsInteractable)
-                    restartButtonScript.Disable();
+                foreach (Slot slot in panelScript.Panel.Slots)
+                {
+                    if (slot.Tile == null)
+                        continue;
 
-                gameController.HasWon = true;
-                victoryScript.ShowVictoryPanel();
-                return;
-            }
+                    Tile tile = slot.Tile;
+                    int value = tile.Value;
+                    if (scoreScript.CheckVictory(value))
+                    {
+                        if (restartButtonScript.IsInteractable)
+                            restartButtonScript.Disable();
+
+                        gameController.HasWon = true;
+                        victoryScript.ShowVictoryPanel();
+                        return;
+                    }
+                }
+            }            
 
             if (gameController.HasWon && gameController.IsEndless == false && submit > 0f)
             {
+                restartButtonScript.Enable();
                 victoryScript.HideVictoryPanel();
                 StartEndless();
                 return;
             }
 
-            if ((gameController.IsGameOver && submit > 0f) || (gameController.IsEndless && submit > 0f))
+            if ((gameController.IsGameOver && jump > 0f) || (gameController.IsEndless && jump > 0f))
             {
-                if (gameController.IsEndless)
+                if (gameController.IsEndless == false)
                     gameOverScript.HideGameOverPanel();
 
                 restartButtonScript.Enable();
@@ -257,7 +270,6 @@ namespace Game.Scripts
         {
             gameController.IsGameOver = false;
             gameController.HasWon = false;
-            gameController.HasFirstStarted = false;
             gameController.IsEndless = false;
             gameController.HasRestarted = true;
             isToLockInput = false;

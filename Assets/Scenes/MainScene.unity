@@ -1008,6 +1008,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   actualScoreTextBox: {fileID: 685307969}
   maxScoreTextBox: {fileID: 2088574882}
+  winningScore: 2048
 --- !u!4 &474388850
 Transform:
   m_ObjectHideFlags: 0
@@ -3252,6 +3253,7 @@ MonoBehaviour:
   slot_3_2: {fileID: 2130670345}
   slot_3_3: {fileID: 712755459}
   TilePrefab: {fileID: 4921926986980592614, guid: b1de32bad6537f449b0bb395acf3f510, type: 3}
+  minimumValue: 2
 --- !u!1 &1678366056
 GameObject:
   m_ObjectHideFlags: 0

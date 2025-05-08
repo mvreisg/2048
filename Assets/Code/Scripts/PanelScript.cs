@@ -55,7 +55,10 @@ namespace Game.Scripts
         private SlotScript slot_3_3;
 
         [SerializeField]
-        private GameObject TilePrefab;     
+        private GameObject TilePrefab;
+
+        [SerializeField]
+        private int minimumValue;
 
         private Panel panel;
 
@@ -110,7 +113,7 @@ namespace Game.Scripts
 
             TileScript tileScript = gameObject.GetComponent<TileScript>();
 
-            tileScript.Tile = new Tile(new Vector2Int(x, y), 2, tileScript.gameObject);            
+            tileScript.Tile = new Tile(new Vector2Int(x, y), minimumValue, tileScript.gameObject);            
 
             panel.Slots[x, y].Tile = tileScript.Tile;
 

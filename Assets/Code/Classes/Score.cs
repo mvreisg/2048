@@ -2,6 +2,13 @@ namespace Game.Classes
 {
     public class Score
     {
+        private readonly int winningScore;
+
+        public Score(int winningScore)
+        {
+            this.winningScore = winningScore;
+        }
+
         public int ActualValue { get; private set; }   
         
         public int MaxValue { get; private set; }
@@ -26,9 +33,9 @@ namespace Game.Classes
             MaxValue = ActualValue;
         }
 
-        public bool CheckVictory()
+        public bool CheckVictory(int value)
         {
-            return ActualValue >= 2048;                
+            return value >= winningScore;                
         }
     }
 }

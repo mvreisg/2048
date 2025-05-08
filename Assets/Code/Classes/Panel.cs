@@ -11,7 +11,7 @@ namespace Game.Classes
         {
             this.width = width;
             this.length = length;
-            this.slots = new Slot[width, length];
+            slots = new Slot[width, length];
         }
 
         public Slot[,] Slots
