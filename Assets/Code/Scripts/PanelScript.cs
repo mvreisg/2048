@@ -112,6 +112,8 @@ namespace Game.Scripts
             );
 
             TileScript tileScript = gameObject.GetComponent<TileScript>();
+            tileScript.InitialColor = GameObject.Find("InitialColorButton").GetComponent<ColorPickerButtonScript>().SelectedColor;
+            tileScript.FinalColor = GameObject.Find("FinalColorButton").GetComponent<ColorPickerButtonScript>().SelectedColor;
 
             tileScript.Tile = new Tile(new Vector2Int(x, y), minimumValue, tileScript.gameObject);            
 

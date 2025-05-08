@@ -13,17 +13,40 @@ namespace Game.Scripts
         [SerializeField]
         private TextMeshProUGUI textBox;
 
-        [SerializeField]
         private Color initialColor;
 
-        [SerializeField]
+        public Color InitialColor
+        {
+            set { initialColor = value; }
+        }
+
         private Color finalColor;
 
+        public Color FinalColor
+        {
+            set { finalColor = value; }
+        }
+        
         public Tile Tile { get; set; }
 
         private void Start()
         {            
             UpdateText();
+            UpdateColor();
+
+            GameObject.Find("InitialColorButton").GetComponent<ColorPickerButtonScript>().OnPointerClickEvent += UpdateInitialColor;
+            GameObject.Find("FinalColorButton").GetComponent<ColorPickerButtonScript>().OnPointerClickEvent += UpdateFinalColor;
+        }
+
+        private void UpdateInitialColor(Color color)
+        {
+            initialColor = color;
+            UpdateColor();
+        }
+
+        private void UpdateFinalColor(Color color)
+        {
+            finalColor = color;
             UpdateColor();
         }
 
@@ -44,6 +67,12 @@ namespace Game.Scripts
                 return;
             }
             image.color = Color.Lerp(initialColor, finalColor, value / maxValue);
+        }
+
+        public void OnDestroy()
+        {
+            GameObject.Find("InitialColorButton").GetComponent<ColorPickerButtonScript>().OnPointerClickEvent -= UpdateInitialColor;
+            GameObject.Find("FinalColorButton").GetComponent<ColorPickerButtonScript>().OnPointerClickEvent -= UpdateFinalColor;
         }
     }
 }

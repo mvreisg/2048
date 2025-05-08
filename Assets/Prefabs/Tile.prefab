@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 1547048951540974409}
   - component: {fileID: 1428290931610835631}
   - component: {fileID: 4249525644101432019}
-  - component: {fileID: 3775037844421733587}
+  - component: {fileID: 4661630383770908518}
   m_Layer: 5
   m_Name: Tile
   m_TagString: Untagged
@@ -77,7 +77,7 @@ MonoBehaviour:
   m_FillOrigin: 0
   m_UseSpriteMesh: 0
   m_PixelsPerUnitMultiplier: 1
---- !u!114 &3775037844421733587
+--- !u!114 &4661630383770908518
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -91,8 +91,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   image: {fileID: 4249525644101432019}
   textBox: {fileID: 5881192275940626467}
-  initialColor: {r: 0, g: 0.39085728, b: 0.496, a: 1}
-  finalColor: {r: 0, g: 0, b: 0, a: 1}
+  initialColorObject: {fileID: 0}
+  finalColorObject: {fileID: 0}
 --- !u!1 &8160392535547442028
 GameObject:
   m_ObjectHideFlags: 0
