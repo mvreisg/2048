@@ -14,7 +14,7 @@ namespace Game.Classes
 
         public void IncreaseScoreBy(int value)
         {
-            ActualValue += 2048;// value;
+            ActualValue += value;
             TryToUpdateMaxValue();
         }
 
