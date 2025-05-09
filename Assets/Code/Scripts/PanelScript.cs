@@ -60,6 +60,16 @@ namespace Game.Scripts
         [SerializeField]
         private int minimumValue;
 
+        [SerializeField]
+        private ColorPickerButtonScript initialColorButton;
+
+        [SerializeField]
+        private ColorPickerButtonScript finalColorButton;
+
+        public ColorPickerButtonScript InitialColorButton => initialColorButton;
+
+        public ColorPickerButtonScript FinalColorButton => finalColorButton;
+
         private Panel panel;
 
         public Panel Panel => panel;
@@ -112,8 +122,8 @@ namespace Game.Scripts
             );
 
             TileScript tileScript = gameObject.GetComponent<TileScript>();
-            tileScript.InitialColor = GameObject.Find("InitialColorButton").GetComponent<ColorPickerButtonScript>().SelectedColor;
-            tileScript.FinalColor = GameObject.Find("FinalColorButton").GetComponent<ColorPickerButtonScript>().SelectedColor;
+            tileScript.InitialColor = initialColorButton.SelectedColor;
+            tileScript.FinalColor = finalColorButton.SelectedColor;
 
             tileScript.Tile = new Tile(new Vector2Int(x, y), minimumValue, tileScript.gameObject);            
 

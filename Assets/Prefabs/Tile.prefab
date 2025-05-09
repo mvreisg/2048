@@ -91,8 +91,9 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   image: {fileID: 4249525644101432019}
   textBox: {fileID: 5881192275940626467}
-  initialColorObject: {fileID: 0}
-  finalColorObject: {fileID: 0}
+  initialColorButton: {fileID: 0}
+  finalColorButton: {fileID: 0}
+  teste: {fileID: 1547048951540974409}
 --- !u!1 &8160392535547442028
 GameObject:
   m_ObjectHideFlags: 0

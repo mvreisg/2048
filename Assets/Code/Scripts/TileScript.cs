@@ -34,8 +34,10 @@ namespace Game.Scripts
             UpdateText();
             UpdateColor();
 
-            GameObject.Find("InitialColorButton").GetComponent<ColorPickerButtonScript>().OnPointerClickEvent += UpdateInitialColor;
-            GameObject.Find("FinalColorButton").GetComponent<ColorPickerButtonScript>().OnPointerClickEvent += UpdateFinalColor;
+            PanelScript panelScript = FindAnyObjectByType<PanelScript>();
+
+            panelScript.InitialColorButton.OnPointerClickEvent += UpdateInitialColor;
+            panelScript.FinalColorButton.OnPointerClickEvent += UpdateFinalColor;
         }
 
         private void UpdateInitialColor(Color color)
@@ -71,8 +73,10 @@ namespace Game.Scripts
 
         public void OnDestroy()
         {
-            GameObject.Find("InitialColorButton").GetComponent<ColorPickerButtonScript>().OnPointerClickEvent -= UpdateInitialColor;
-            GameObject.Find("FinalColorButton").GetComponent<ColorPickerButtonScript>().OnPointerClickEvent -= UpdateFinalColor;
+            PanelScript panelScript = FindAnyObjectByType<PanelScript>();
+
+            panelScript.InitialColorButton.OnPointerClickEvent -= UpdateInitialColor;
+            panelScript.FinalColorButton.OnPointerClickEvent -= UpdateFinalColor;
         }
     }
 }
