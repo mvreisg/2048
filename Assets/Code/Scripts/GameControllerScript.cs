@@ -2,7 +2,6 @@ using Game.Classes;
 using Game.Enums;
 using System.Collections.Generic;
 using UnityEngine;
-using static UnityEngine.Rendering.DebugUI;
 
 namespace Game.Scripts
 {
@@ -23,20 +22,7 @@ namespace Game.Scripts
         [SerializeField]
         private ScoreScript scoreScript;
 
-        [SerializeField]
-        private RestartButtonScript restartButtonScript;
-
-        private Queue<TileTranslationAnimationStep>[] tileTranslationAnimationStepsQueueArray = new Queue<TileTranslationAnimationStep>[4];
-
-        private TileTranslationAnimationStep[] tileTranslationAnimationStepsArray = new TileTranslationAnimationStep[4];
-
-        private List<TileScalingAnimationStep> tileScalingAnimationStepsList = new List<TileScalingAnimationStep>();
-
         private GameController gameController;
-
-        private bool isAnimationsHappening;
-
-        private bool isToLockInput;        
 
         private void Awake()
         {
@@ -45,36 +31,58 @@ namespace Game.Scripts
 
         private void Update()
         {
-            float submit = Input.GetAxis("Submit");
-            float jump = Input.GetAxis("Jump");
-
             if (panelScript.PanelStarted == false)
                 return;
 
-            if (gameController.HasFirstStarted == false && submit > 0f)
+            bool submitPressed = Input.GetButtonDown("Submit");
+
+            if (gameController.HasFirstStarted == false && submitPressed)
             {
                 startGameScript.HideStartGamePanel();
                 StartGame();
                 return;
+            }            
+
+            if (gameController.IsGameOver && submitPressed)
+            {
+                gameOverScript.HideGameOverPanel();
+                RestartGame();
+                return;
             }
-            
+
+            if (gameController.IsEndless && submitPressed)
+            {
+                RestartGame();
+                return;
+            }
+
+            if (gameController.HasWon && gameController.IsEndless == false && submitPressed)
+            {
+                victoryScript.HideVictoryPanel();
+                StartEndless();
+                return;
+            }
+
             if (gameController.HasFirstStarted == false && gameController.HasRestarted == false)
                 return;
 
-            for (int i = 0; i < tileTranslationAnimationStepsQueueArray.Length; i++)
+            if (gameController.IsPaused)
+                return;
+
+            for (int i = 0; i < gameController.TileTranslationAnimationStepsQueueArray.Length; i++)
             {
-                if (tileTranslationAnimationStepsQueueArray[i] == null)
+                if (gameController.TileTranslationAnimationStepsQueueArray[i] == null)
                     continue;
 
-                if (tileTranslationAnimationStepsArray[i] == null && tileTranslationAnimationStepsQueueArray[i].Count > 0)
+                if (gameController.TileTranslationAnimationStepsArray[i] == null && gameController.TileTranslationAnimationStepsQueueArray[i].Count > 0)
                 {
-                    tileTranslationAnimationStepsArray[i] = tileTranslationAnimationStepsQueueArray[i].Dequeue();
+                    gameController.TileTranslationAnimationStepsArray[i] = gameController.TileTranslationAnimationStepsQueueArray[i].Dequeue();
                 }
             }
 
-            for (int i = 0; i < tileTranslationAnimationStepsArray.Length; i++)
+            for (int i = 0; i < gameController.TileTranslationAnimationStepsArray.Length; i++)
             {
-                TileTranslationAnimationStep animationStep = tileTranslationAnimationStepsArray[i];
+                TileTranslationAnimationStep animationStep = gameController.TileTranslationAnimationStepsArray[i];
                 if (animationStep == null)
                     continue;
 
@@ -83,13 +91,13 @@ namespace Game.Scripts
                 {
                     animationStep.Update();
                     animationStep.FinishCallback?.Invoke();
-                    tileTranslationAnimationStepsArray[i] = null;
+                    gameController.TileTranslationAnimationStepsArray[i] = null;
                 }
             }
 
-            for (int i = 0; i < tileScalingAnimationStepsList.Count; i++)
+            for (int i = 0; i < gameController.TileScalingAnimationStepsList.Count; i++)
             {
-                TileScalingAnimationStep animationStep = tileScalingAnimationStepsList[i];
+                TileScalingAnimationStep animationStep = gameController.TileScalingAnimationStepsList[i];
                 if (animationStep == null)
                     continue;
 
@@ -98,34 +106,30 @@ namespace Game.Scripts
                 {
                     animationStep.Update();
                     animationStep.FinishCallback?.Invoke();
-                    tileScalingAnimationStepsList.Remove(animationStep);
+                    gameController.TileScalingAnimationStepsList.Remove(animationStep);
                 }
             }
 
-            isAnimationsHappening = false;
-            for (int i = 0; i < tileTranslationAnimationStepsQueueArray.Length; i++)
+            gameController.SetAnimationsHappening(false);
+            for (int i = 0; i < gameController.TileTranslationAnimationStepsQueueArray.Length; i++)
             {
-                if (tileTranslationAnimationStepsQueueArray[i] == null)
+                if (gameController.TileTranslationAnimationStepsQueueArray[i] == null)
                     continue;
 
-                if (tileTranslationAnimationStepsQueueArray[i].Count > 0)
+                if (gameController.TileTranslationAnimationStepsQueueArray[i].Count > 0)
                 {
-                    isAnimationsHappening = true;
+                    gameController.SetAnimationsHappening(true);
                     break;
                 }
             }
 
-            for (int i = 0; i < tileScalingAnimationStepsList.Count; i++)
+            if (gameController.TileScalingAnimationStepsList.Count > 0)
             {
-                if (tileScalingAnimationStepsList[i] == null)
-                    continue;
-
-                if (tileScalingAnimationStepsList.Count > 0)
-                {
-                    isAnimationsHappening = true;
-                    break;
-                }
+                gameController.SetAnimationsHappening(true);                
             }
+
+            if (gameController.IsAnimationsHappening)
+                return;
 
             if (gameController.HasWon == false)
             {
@@ -138,104 +142,115 @@ namespace Game.Scripts
                     int value = tile.Value;
                     if (scoreScript.CheckVictory(value))
                     {
-                        if (restartButtonScript.IsInteractable)
-                            restartButtonScript.Disable();
-
-                        gameController.HasWon = true;
+                        gameController.StartVictory();
                         victoryScript.ShowVictoryPanel();
                         return;
                     }
                 }
-            }            
-
-            if (gameController.HasWon && gameController.IsEndless == false && submit > 0f)
+            }                        
+            
+            if (gameController.IsAnimationsHappening == false && gameController.IsToSpawnNewTile)
             {
-                restartButtonScript.Enable();
-                victoryScript.HideVictoryPanel();
-                StartEndless();
-                return;
-            }
-
-            if ((gameController.IsGameOver && jump > 0f) || (gameController.IsEndless && jump > 0f))
-            {
-                if (gameController.IsEndless == false)
-                    gameOverScript.HideGameOverPanel();
-
-                restartButtonScript.Enable();
-                RestartGame();
-                return;
-            }
-
-            if (gameController.IsGameOver)
-            {
-                if (restartButtonScript.IsInteractable)
-                    restartButtonScript.Disable();
-
-                return;
-            }                
-
-            if (gameController.HasWon && gameController.IsEndless == false)
-            {
-                return;
-            }
-
-            if (isAnimationsHappening)
-            {
-                return;
-            }
-            else if (isAnimationsHappening == false && isToLockInput)
-            {
-                isToLockInput = false;
+                gameController.SetIsToSpawnNewTile(false);
                 GenerateNewTile();
                 return;
             }
 
+            if (gameController.IsAnimationsHappening == false && gameController.IsToLockInputs)
+            {
+                gameController.SetIsToLockInputs(false);
+                return;
+            }
+            
             float horizontal = Input.GetAxis("Horizontal");
             float vertical = Input.GetAxis("Vertical");
 
-            if (horizontal < 0f && isToLockInput == false)
+            bool left = false;
+            bool right = false;
+            bool up = false;
+            bool down = false;
+
+            if (horizontal < 0f)
+            {                
+                left = true;
+                right = false;
+            }
+
+            if (horizontal > 0f)
+            {
+                left = false;
+                right = true;
+            }
+
+            if (vertical < 0f)
+            {
+                up = false;
+                down = true;
+            }
+
+            if (vertical > 0f)
+            {
+                up = true;
+                down = false;
+            }
+
+            if (left && gameController.IsToLockInputs == false)
             {
                 StartMovingAnimationToTheLeft();
-                isToLockInput = true;
+                gameController.SetIsToLockInputs(true);
+                gameController.SetIsToSpawnNewTile(true);                
                 return;
             }
 
-            if (horizontal > 0f && isToLockInput == false)
+            if (right && gameController.IsToLockInputs == false)
             {
                 StartMovingAnimationToTheRight();
-                isToLockInput = true;
+                gameController.SetIsToLockInputs(true);
+                gameController.SetIsToSpawnNewTile(true);
                 return;
             }
 
-            if (vertical < 0f && isToLockInput == false)
+            if (down && gameController.IsToLockInputs == false)
             {
                 StartMovingAnimationToTheBottom();
-                isToLockInput = true;
+                gameController.SetIsToLockInputs(true);
+                gameController.SetIsToSpawnNewTile(true);
                 return;
             }
 
-            if (vertical > 0f && isToLockInput == false)
+            if (up && gameController.IsToLockInputs == false)
             {
                 StartMovingAnimationToTheTop();
-                isToLockInput = true;
+                gameController.SetIsToLockInputs(true);
+                gameController.SetIsToSpawnNewTile(true);
                 return;
             }
+        }
+
+        public void PauseGame()
+        {
+            gameController.PauseGame();
+        }
+
+        public void ResumeGame()
+        {
+            gameController.ResumeGame();
         }
 
         private void BootGame()
         {
             scoreScript.ResetScore();
 
-            tileTranslationAnimationStepsQueueArray = new Queue<TileTranslationAnimationStep>[4];
-            tileTranslationAnimationStepsArray = new TileTranslationAnimationStep[4];
+            gameController.ResetTileTranslationAnimationStepsArray();
+            gameController.ResetTileTranslationAnimationStepsQueueArray();
 
-            for (int i = 0; i < tileScalingAnimationStepsList.Count; i++)
+            for (int i = 0; i < gameController.TileScalingAnimationStepsList.Count; i++)
             {
-                GameObject gameObject = tileScalingAnimationStepsList[i].GameObject;
+                GameObject gameObject = gameController.TileScalingAnimationStepsList[i].GameObject;
                 Destroy(gameObject);
             }
 
-            tileScalingAnimationStepsList.Clear();
+            gameController.TileScalingAnimationStepsList.Clear();
 
             panelScript.Panel.ClearAllSlots();
 
@@ -257,30 +272,20 @@ namespace Game.Scripts
 
         public void StartGame()
         {
-            gameController.IsGameOver = false;
-            gameController.HasWon = false;
-            gameController.HasFirstStarted = true;
-            gameController.IsEndless = false;
-            gameController.HasRestarted = false;
-            
+            gameController.StartGame();                        
             BootGame();
         }
 
         public void RestartGame()
         {
-            gameController.IsGameOver = false;
-            gameController.HasWon = false;
-            gameController.IsEndless = false;
-            gameController.HasRestarted = true;
-            isToLockInput = false;
-
+            gameController.RestartGame();            
             BootGame();
         }
 
         public void StartEndless()
         {
             victoryScript.HideVictoryPanel();
-            gameController.IsEndless = true;
+            gameController.StartEndless();            
         }
 
         private void GenerateNewTile()
@@ -292,7 +297,7 @@ namespace Game.Scripts
 
             if (panelScript.Panel.HasEmptySlots == false && panelScript.CheckIfMovementIsAllowed() == false)
             {
-                gameController.IsGameOver = true;
+                gameController.StartGameOver();
                 gameOverScript.ShowGameOverPanel();
                 return;
             }
@@ -317,7 +322,7 @@ namespace Game.Scripts
                 step.TotalTime = 0.1f;
                 step.GameObject = instantiatedTile.GameObject;
                     
-                tileScalingAnimationStepsList.Add(step);
+                gameController.TileScalingAnimationStepsList.Add(step);
             }
         }
 
@@ -390,7 +395,7 @@ namespace Game.Scripts
                         MakeTranslationAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
-                tileTranslationAnimationStepsQueueArray[y] = animationStepsQueue;
+                gameController.TileTranslationAnimationStepsQueueArray[y] = animationStepsQueue;
             }
         }
 
@@ -422,7 +427,7 @@ namespace Game.Scripts
                         MakeTranslationAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
-                tileTranslationAnimationStepsQueueArray[y] = animationStepsQueue;
+                gameController.TileTranslationAnimationStepsQueueArray[y] = animationStepsQueue;
             }
         }
 
@@ -454,7 +459,7 @@ namespace Game.Scripts
                         MakeTranslationAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
-                tileTranslationAnimationStepsQueueArray[x] = animationStepsQueue;
+                gameController.TileTranslationAnimationStepsQueueArray[x] = animationStepsQueue;
             }
         }
 
@@ -486,7 +491,7 @@ namespace Game.Scripts
                         MakeTranslationAnimationLogic(animationStepsQueue, operation, actualCoordinate, finalCoordinate);
                     }
                 }
-                tileTranslationAnimationStepsQueueArray[x] = animationStepsQueue;
+                gameController.TileTranslationAnimationStepsQueueArray[x] = animationStepsQueue;
             }
         }        
     }
