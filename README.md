@@ -1,9 +1,8 @@
 # 2048
 
-## [Play the game here!](https://mvreisg.github.io/2048-deploy/)
+## [PLAY THE GAME HERE!](https://mvreisg.github.io/2048-deploy/)
 
-<br/>
+## About
 
-A small Unity project based on the 2048 game.
-
-Using Unity version 6000.0.42f1
+- Source code of my version of the famous game 2048 made in Unity.
+- Using Unity version **6000.0.42f1**
